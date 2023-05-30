@@ -1,0 +1,29 @@
+{
+  "canisters": {
+    "masterzpw_backend": {
+      "main": "src/masterzpw_backend/main.mo",
+      "type": "motoko"
+    },
+    "masterzpw_frontend": {
+      "dependencies": [
+        "masterzpw_backend"
+      ],
+      "frontend": {
+        "entrypoint": "src/masterzpw_frontend/src/index.html"
+      },
+      "source": [
+        "src/masterzpw_frontend/assets",
+        "dist/masterzpw_frontend/"
+      ],
+      "type": "assets"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}
