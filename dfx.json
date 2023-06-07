@@ -1,7 +1,7 @@
 {
   "canisters": {
     "masterzpw_backend": {
-      "main": "src/masterzpw_backend/main.mo",
+      "main": "src/tests/main.mo",
       "type": "motoko"
     },
     "masterzpw_frontend": {

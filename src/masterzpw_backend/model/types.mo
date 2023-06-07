@@ -1,4 +1,3 @@
-import Nat "mo:base/Nat";
 import Nat8 "mo:base/Nat8";
 import Nat16 "mo:base/Nat16";
 import Nat32 "mo:base/Nat32";
@@ -14,16 +13,8 @@ import Int32 "mo:base/Int32";
 import Int "mo:base/Int";
 import Int64 "mo:base/Int64";
 
+
 module {
-
-
-  public type InitArgs = {
-    name: Text;
-    logo: Text;
-    symbol: Text;
-    custodians: [Principal];
-    cap: Principal;
-  };
 
   // NFT canister metadata
   public type Metadata = {
@@ -64,25 +55,8 @@ module {
     #TextContent: Text;
   };
 
-  // NFT identifier
-  public type TokenIdentifier = Nat;
 
-  // Token Metadat (to complete)
-  public type TokenMetadata = {
-    transferred_at: Nat64;
-    transferred_by: Principal;
-    owner: Principal;
-    operator: Principal;
-    properties: Vec;
-    is_burned: Bool;
-    token_identifier: Nat;
-    burned_at: Nat64;
-    burned_by: Principal;
-    approved_at: Nat64;
-    approved_by: Principal;
-    minted_at: Nat64;
-    minted_by: Principal;
-  };
+
 
   // Error enum list
   public type NftError = {
@@ -100,9 +74,7 @@ module {
 
   // API enum list
   public type SupportedInterface = {
-    #Burn;
     #Mint;
-    #Approval;
     #TransactionHistory;
   };
 
@@ -114,8 +86,6 @@ module {
     caller: Principal;
   };
 
-  public type TxIdentifier = Nat64;
-
   // Array of pairs key-value
   public type Vec = [{
     key: Text;
@@ -123,12 +93,6 @@ module {
   }];
 
 
-  public type Nft = {
-    owner_chain: [Principal];
-    owner: Principal;
-    id: TokenIdentifier;
-    metadata: TokenMetadata;
-  };
 
   public type Result<S, NftError> = {
     #Ok : S;

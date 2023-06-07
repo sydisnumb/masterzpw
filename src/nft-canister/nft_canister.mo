@@ -1,3 +1,5 @@
+import HashMap "mo:base/HashMap";
+import Ledger "masterzpw_backend/persistence/ledger";
 import Nat "mo:base/Nat";
 import Nat8 "mo:base/Nat8";
 import Nat16 "mo:base/Nat16";
@@ -13,72 +15,68 @@ import Time "mo:base/Time";
 import Text "mo:base/Text";
 import Result "mo:base/Result";
 import HashMap "mo:base/HashMap";
-import HashMap "mo:base/HashMap";
 
-shared actor class NftCanister(init : Types.InitArgs) = Self {
-  stable var transactionId: Types.TransactionId = 0;
-  stable var txs: HashMap.HashMap<Types.TxIdentifier, Types.TxEvent>(5, Type.TxIdentifier.equal, Type.TxIdentifier.hash);
-  stable var nfts = List.nil<Types.Nft>();
-  stable var unique_holders = List.nil<Types.Principal>();
+shared actor class Ledger(init : Types.InitArgs) = Self {
+  private stable var transactionId: Types.TransactionId = 0;
+  private stable var txs = List.nil<Types.TxEvent>();
+  private stable var nfts = HashMap<Types.TokenIdentifier.TokenIdentifier, Types.Nft>();
+  private stable var unique_holders = HashMap<Principal, Users.>();
 
-  stable var logo: Text = init.logo;
-  stable var name: Text = init.name;
-  stable var created_at: Nat64 = 1685572614;
-  stable var custodians: [Principal] = init.custodians;
-  stable var symbol: Text = init.symbol;
-  stable var cycles: Nat=0;
+  private stable var logo : Text = init.logo;
+  private stable var name : Text = init.name;
+  private stable var created_at : Nat64 = 1685572614;
+  private stable var custodians : [Principal] = init.custodians;
+  private stable var symbol : Text = init.symbol;
 
-
-
- 
 
   // https://forum.dfinity.org/t/is-there-any-address-0-equivalent-at-dfinity-motoko/5445/3
   let null_address: Principal = Principal.fromText("aaaaa-aa");
 
   public query func metadata() : async Types.Metadata {
-    var nft_canister_metadata: Types.Metadata = {
-        logo = init.logo;
-        name = init.name;
-        created_at = 1685572614;
-        custodians = init.custodians;
-        symbol = init.symbol;
+    {
+        logo = self.logo;
+        name = self.name;
+        created_at = self.created_at;
+        custodians = self.custodians;
+        symbol = self.symbol;
     };
-
-    return nft_canister_metadata
   };
 
   public query func stats() : async Types.Metadata {
-    var nft_canister_stats: Types.Stats = {
-      cycles = ;
-      total_transactions = HashMap.size(txs);
-      total_unique_holders: List.size(unique_holders);
-      total_supply = List.size(nfs)
+    {
+        cycles = Cycles.balance();
+        total_transactions = HashMap.size(txs);
+        total_unique_holders = List.size(unique_holders);
+        total_supply = HashMap.size(nfts);
+
     }
   };
+
 
   public query func logo() : async Text {
     return logo;
   };
 
+
   public func setLogo(logo: Text) : async () {
-    logo = logo;
-  }
+    logo := logo;
+  };
 
   public query func name() : async Text {
     return name;
   };
 
   public func setName(name: Text) : async () {
-    name = name;
-  }
+    name := name;
+  };
 
   public query func symbol() : async Text {
     return symbol;
   };
 
   public func setSymbol(symbol: Text) : async () {
-    symbol = symbol;
-  }
+    symbol := symbol;
+  };
 
   public query func totalSupply() : async Nat {
     return List.size(nfs);
@@ -89,7 +87,7 @@ shared actor class NftCanister(init : Types.InitArgs) = Self {
   };
 
   public func setCustodians(custodians: [Principal]) : async () {
-    custodians = custodians;
+    custodians := custodians;
   };
 
   public query func cycles() : async Nat {
