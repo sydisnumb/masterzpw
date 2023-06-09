@@ -15,6 +15,7 @@ import Time "mo:base/Time";
 import Text "mo:base/Text";
 import Result "mo:base/Result";
 import HashMap "mo:base/HashMap";
+import Cycles "mo:base/ExperimentalCycles";
 
 shared actor class Ledger(init : Types.InitArgs) = Self {
   private stable var transactionId: Types.TransactionId = 0;

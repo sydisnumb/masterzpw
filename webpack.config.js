@@ -5,11 +5,49 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 const CopyPlugin = require("copy-webpack-plugin");
 
+
+const network =
+    process.env.DFX_NETWORK ||
+    (process.env.NODE_ENV === "production" ? "ic" : "local");
+
+function initCanisterEnv() {
+  let localCanisters, prodCanisters;
+  try {
+    localCanisters = require(path.resolve(
+      ".dfx",
+      "local",
+      "canister_ids.json"
+    ));
+  } catch (error) {
+    console.log("No local canister_ids.json found. Continuing production");
+  }
+  try {
+    prodCanisters = require(path.resolve("canister_ids.json"));
+  } catch (error) {
+    console.log("No production canister_ids.json found. Continuing with local");
+  }
+
+  const canisterConfig = network === "local" ? localCanisters : prodCanisters;
+
+  return Object.entries(canisterConfig).reduce((prev, current) => {
+    const [canisterName, canisterDetails] = current;
+    prev[canisterName.toUpperCase() + "_CANISTER_ID"] =
+      canisterDetails[network];
+    return prev;
+  }, {});
+}
+
 const isDevelopment = process.env.NODE_ENV !== "production";
+const MASTERZPW_CANISTER_ID = process.env.MASTERZPW_CANISTER_ID;
 
 const frontendDirectory = "masterzpw_frontend";
 
 const frontend_entry = path.join("src", frontendDirectory, "src", "index.html");
+
+const canisterEnvVariables = initCanisterEnv();
+
+const internetIdentityUrl = network === "local" ? `http://localhost:4943/?canisterId=${canisterEnvVariables["INTERNET_IDENTITY_CANISTER_ID"]}` : `https://identity.ic0.app`
+
 
 module.exports = {
   target: "web",
@@ -17,7 +55,7 @@ module.exports = {
   entry: {
     // The frontend.entrypoint points to the HTML file for this build, so we need
     // to replace the extension to `.js`.
-    index: path.join(__dirname, frontend_entry).replace(/\.html$/, ".ts"),
+    index: path.join(__dirname, frontend_entry).replace(/\.html$/, ".js"),
   },
   devtool: isDevelopment ? "source-map" : false,
   optimization: {
@@ -35,7 +73,7 @@ module.exports = {
     },
   },
   output: {
-    filename: "index.ts",
+    filename: "index.js",
     path: path.join(__dirname, "dist", frontendDirectory),
   },
 
@@ -45,23 +83,32 @@ module.exports = {
   // modules and CSS as described in the "Adding a stylesheet"
   // tutorial, uncomment the following lines:
   module: {
-   rules: [
-      { test: /\.css$/, use: 'css-loader' },
-      { test: /\.ts$/, use: 'ts-loader' },
-   ]
-  },
+    rules: [
+       { test: /\.css$/, use: ['style-loader','css-loader'] },
+       { test: /\.(js|ts)x?$/, loader: "ts-loader" },
+       {
+           test: /\.s[ac]ss$/i,
+           use: [
+             // Creates `style` nodes from JS strings
+             "style-loader",
+             // Translates CSS into CommonJS
+             "css-loader",
+             // Compiles Sass to CSS
+             "sass-loader",
+           ],
+         },
+    ]
+   },
   plugins: [
     new HtmlWebpackPlugin({
       template: path.join(__dirname, frontend_entry),
       cache: false,
     }),
-    new webpack.EnvironmentPlugin([
-      ...Object.keys(process.env).filter((key) => {
-        if (key.includes("CANISTER")) return true;
-        if (key.includes("DFX")) return true;
-        return false;
-      }),
-    ]),
+    new webpack.EnvironmentPlugin({
+      NODE_ENV: "development",
+      II_URL: internetIdentityUrl,
+      ...canisterEnvVariables,
+    }),
     new webpack.ProvidePlugin({
       Buffer: [require.resolve("buffer/"), "Buffer"],
       process: require.resolve("process/browser"),
@@ -71,7 +118,7 @@ module.exports = {
         {
           from: `src/${frontendDirectory}/src/.ic-assets.json*`,
           to: ".ic-assets.json5",
-          noErrorOnMissing: true,
+          noErrorOnMissing: true
         },
       ],
     }),

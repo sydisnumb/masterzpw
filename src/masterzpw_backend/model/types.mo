@@ -12,16 +12,24 @@ import Int8 "mo:base/Int8";
 import Int32 "mo:base/Int32";
 import Int "mo:base/Int";
 import Int64 "mo:base/Int64";
+import Time "mo:base/Time";
 
 
 module {
+
+  public type InitArgs = {
+    logo: Text;
+    name: Text;
+    custodians: [Principal];
+    symbol: Text;
+  };
 
   // NFT canister metadata
   public type Metadata = {
     logo: Text;
     name: Text;
-    created_at: Nat64; 
-    upgraded_at: Nat64;
+    created_at: Time.Time; 
+    upgraded_at: Time.Time;
     custodians: [Principal];
     symbol: Text;
   };
@@ -76,10 +84,14 @@ module {
   public type SupportedInterface = {
     #Mint;
     #TransactionHistory;
+    #Transfer;
   };
+
+  public type TxIdentifier = Nat64;
 
   // Transaction struct
   public type TxEvent = {
+    txId : TxIdentifier;
     time: Nat64;
     operation: Text;
     details: Vec;
@@ -97,5 +109,14 @@ module {
   public type Result<S, NftError> = {
     #Ok : S;
     #Err : NftError;
+  };
+
+  public func hash(nat64Id : Nat64) : Nat32 {
+    let text = Nat64.toText(nat64Id);
+    Text.hash(text);
+  };
+
+  public func equal(nat64Id1 : Nat64, nat64Id2 : Nat64) : Bool {
+    nat64Id1 == nat64Id2;
   };
 };
