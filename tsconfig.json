@@ -18,7 +18,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "paths": {
-      "dfx-generated/masterzpw_backend": ["./.dfx/local/canisters/masterzpw_backend"]
+      "dfx-generated/masterzpw_backend": ["./.dfx/local/canisters/controller"]
     }
   }
 }
