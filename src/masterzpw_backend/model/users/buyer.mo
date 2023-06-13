@@ -24,7 +24,7 @@ module {
         private let profilePictureUri : Text = picUri;
         private let ownerType : Text = "buyer";
 
-        private var ownNfts = HashMap.HashMap<Nft.TokenIdentifier.TokenIdentifier, Nft.Nft.Nft>(0, Nft.TokenIdentifier.equal, Nft.TokenIdentifier.hash);
+        private var ownNfts = HashMap.HashMap<Nft.TokenIdentifier.TokenIdentifier, Nft.Nft.Nft>(1, Nft.TokenIdentifier.equal, Nft.TokenIdentifier.hash);
         
         public func getPrincipal() : Principal = principal;
 
