@@ -14,6 +14,9 @@ import Company "./model/users/company";
 import Buyer "./model/users/buyer";
 import Nft "./model/art/nft";
 import Opera "./model/art/opera";
+import Float "mo:base/Float";
+import Int "mo:base/Int";
+import Buffer "mo:base/Buffer";
 
 shared actor class Ledger() = Self {
     private let null_address: Principal = Principal.fromText("aaaaa-aa");
@@ -61,35 +64,35 @@ shared actor class Ledger() = Self {
     // '''
     // Metodi d'istanza get/set, add/remove
     // '''
-    public query func logo() : async Text { 
+    public shared query func logo() : async Text { 
         logov; 
     };
     
-    public query func name() : async Text { 
+    public shared query func name() : async Text { 
             namev; 
     };
 
-    public query func symbol() : async Text { 
+    public shared query func symbol() : async Text { 
         symbolv; 
     };
 
-    public query func custodians() : async [Principal]{ 
+    public shared query func custodians() : async [Principal]{ 
         custodiansv; 
     };
     
-    public query func cycles() : async Nat { 
+    public shared query func cycles() : async Nat { 
         Cycles.balance(); 
     };
     
-    public query func totalUniqueHolders() : async Nat { 
+    public shared query func totalUniqueHolders() : async Nat { 
         computeTotalUniqueHolders();
     };
     
-    public query func totalSupply() : async Nat { 
+    public shared query func totalSupply() : async Nat { 
         nfts.size();
     };
 
-    public query func metadata() : async Types.Metadata {
+    public shared query func metadata() : async Types.Metadata {
         let metadata : Types.Metadata = {
             logo = logov;
             name = namev;
@@ -100,7 +103,7 @@ shared actor class Ledger() = Self {
         };
     };
 
-    public query func stats() : async Types.Stats {
+    public shared query func stats() : async Types.Stats {
         let stats : Types.Stats = {
             cycles = Cycles.balance();
             total_transactions = txs.size();
@@ -110,21 +113,21 @@ shared actor class Ledger() = Self {
     };
 
 
-    public func setLogo(newLogo: Text) : async () {
+    public shared func setLogo(newLogo: Text) : async () {
         logov := newLogo;
     };
 
 
-    public func setName(newName: Text) : async () {
+    public shared func setName(newName: Text) : async () {
         namev := newName;
     };
 
 
-    public func setSymbol(newSymbol: Text) : async () {
+    public shared func setSymbol(newSymbol: Text) : async () {
         symbolv := newSymbol;
     };
 
-    public func setCustodians(newCustodians: [Principal]) : async () {
+    public shared func setCustodians(newCustodians: [Principal]) : async () {
         custodiansv := newCustodians;
     };
 
@@ -133,7 +136,7 @@ shared actor class Ledger() = Self {
     // '''
     // Metodi di interfaccia standard DIP-721
     // '''
-    public query func tokenMetadata(tokenIdentifier: Nft.TokenIdentifier.TokenIdentifier) : async Types.Result<Nft.Nft.TokenMetadata, Types.NftError> {
+    public shared query func tokenMetadata(tokenIdentifier: Nft.TokenIdentifier.TokenIdentifier) : async Types.Result<Nft.Nft.TokenMetadata, Types.NftError> {
         let token = nfts.get(tokenIdentifier);
 
         let res =
@@ -143,7 +146,7 @@ shared actor class Ledger() = Self {
             };
     };
 
-    public query func balanceOf(owner: Principal) : async Types.Result<Nat, Types.NftError>  {
+    public shared query func balanceOf(owner: Principal) : async Types.Result<Nat, Types.NftError>  {
         var ownerO = companies.get(owner);
 
         let res = 
@@ -159,12 +162,12 @@ shared actor class Ledger() = Self {
             };     
     };
 
-    public query func ownerOf(tokenId: Nft.TokenIdentifier.TokenIdentifier) : async Types.Result<Principal, Types.NftError>  {
+    public shared query func ownerOf(tokenId: Nft.TokenIdentifier.TokenIdentifier) : async Types.Result<Principal, Types.NftError>  {
         return _ownerOf(tokenId);
     };
 
 
-    public query func ownerTokenIdentifiers(owner : Principal) : async Types.Result<[Nft.TokenIdentifier.TokenIdentifier], Types.NftError> { 
+    public shared query func ownerTokenIdentifiers(owner : Principal) : async Types.Result<[Nft.TokenIdentifier.TokenIdentifier], Types.NftError> { 
         var ownerO = companies.get(owner);
 
         let res = 
@@ -180,7 +183,7 @@ shared actor class Ledger() = Self {
             };            
     };
 
-    public query func ownerTokenMetadata(owner : Principal) : async Types.Result<[Nft.Nft.TokenMetadata], Types.NftError>  {
+    public shared query func ownerTokenMetadata(owner : Principal) : async Types.Result<[Nft.Nft.TokenMetadata], Types.NftError>  {
         var ownerO = companies.get(owner);
 
         let res = 
@@ -196,11 +199,11 @@ shared actor class Ledger() = Self {
             };      
     };
 
-    public query func supportedInterfaces() : async [Types.SupportedInterface] {
+    public shared query func supportedInterfaces() : async [Types.SupportedInterface] {
         let interfaces = [#Mint, #TransactionHistory, #Transfer];
     };
 
-    public func transferFrom(from: Principal, to : Principal, tokenId : Nft.TokenIdentifier.TokenIdentifier) : async Types.Result<Types.TxIdentifier, Types.NftError> {
+    public shared func transferFrom(from: Principal, to : Principal, tokenId : Nft.TokenIdentifier.TokenIdentifier) : async Types.Result<Types.TxIdentifier, Types.NftError> {
         let res = _ownerOf(tokenId);
 
         let ownerPri =
@@ -267,42 +270,18 @@ shared actor class Ledger() = Self {
 
     };
 
-    public func mint(owner : Principal, properties: Types.Vec) : async Types.Result<Types.TxIdentifier, Types.NftError> {
-        let nft = nfts.get(tokenId);
-
+    public shared func mint(owner : Principal, properties: Types.Vec) : async Types.Result<Types.TxIdentifier, Types.NftError> {
+        let res = _mint(owner, properties);
         
-        switch (nft) {
-            case (?nft) { return #Err(#ExistedNFT); };
-            case (null) { nfts.put(
-                tokenId,
-                {
-                    tokenId = tokenId;
-                    owner = owner;
-                    metadata = {
-                        transferredAt = null;
-                        transferredBy = null;
-                        owner = owner;
-                        operator = null;
-                        properties = properties;
-                        isBurned = false;
-                        tokenIdentifier = tokenId;
-                        burnedAt = null;
-                        burnedBy = null;
-                        approvedAt = null;
-                        approvedBy = null;
-                        mintedAt = Time.now();
-                        mintedBy = custodiansv[0];
-                    }; 
-                }
-            ) };
-        };
-
-        tokenId += 1;
-        transactionId += 1;
-        return #Ok(transactionId);
+        let ret =
+            switch res {
+                case (#Ok(tokenId)) {
+                    #Ok(transactionId); };
+                case (#Err(_)) { #Err(#ExistedNFT) };
+            };
     };
 
-    public query func transaction(txId : Types.TxIdentifier) : async Types.Result<Types.TxEvent, Types.NftError> {
+    public shared query func transaction(txId : Types.TxIdentifier) : async Types.Result<Types.TxEvent, Types.NftError> {
         let tx = txs.get(txId);
 
         let res = 
@@ -313,7 +292,7 @@ shared actor class Ledger() = Self {
     };
 
 
-    public query func totalTransaction() : async Nat {
+    public shared query func totalTransaction() : async Nat {
         txs.size();
     };
 
@@ -367,8 +346,194 @@ shared actor class Ledger() = Self {
 
 
     // '''
-    // Metodi privati di utility
+    // Metodi di utility
     // '''
+
+    public shared query func createNewOpera(owner : Principal, operaName : Text, opDescription: Text, picUri : Text, opPrice:  Float, quantity : Int) : async Types.Result<Nat64, Types.NftError> {
+        Debug.print("createNewOpera START");
+        
+        let company = companies.get(owner);
+        let res = 
+            switch (company) {
+                case (?company) { 
+                    Debug.print("createNewOpera COMPANY EXISTS");
+
+                    let opera_id = Nat64.fromNat(operas.size() + 1);
+                    let opera = Opera.Opera(opera_id, operaName, opDescription, picUri, opPrice, []);
+                    let properties : Types.Vec = [
+                        {
+                            key = "operaId";
+                            value = #Nat64Content(opera.getId());
+                        }, {
+                            key = "operaName";
+                            value = #TextContent(opera.getName());
+                        }, {
+                            key = "operaDescription";
+                            value = #TextContent(opera.getDescription());
+                        }, {
+                            key = "operaUri";
+                            value = #TextContent(opera.getPictureUri());
+                        }, {
+                            key = "operaPrice";
+                            value = #FloatContent(opera.getPrice());
+                        }];
+
+                    let buf = Buffer.Buffer<Nft.TokenIdentifier.TokenIdentifier>(0);
+
+                    Debug.print("createCompany MINTING");
+                    for (i in Iter.range(1, quantity)) {
+                        let result = _mint(custodiansv[0], properties);
+                        switch result {
+                            case (#Ok(tokenId)) {
+                                buf.add(tokenId);
+                                Debug.print(Nat64.toText(tokenId)); };
+                            case (#Err(_)) { assert(false) };
+                        };
+                    };
+
+                    let newNfts = Buffer.toArray(buf);
+                    opera.setNftsIds(newNfts);
+
+                    operas.put(opera.getId(), opera);
+                    #Ok(opera.getId());
+
+                 };
+                case null { #Err(#UnauthorizedOwner); };
+            };
+
+        res;        
+    };
+
+    public shared query func createCompany(owner : Principal, username : Text, profilePictureUri : Text, bankAddress: Text) : async Types.Result<Principal, Types.NftError> {
+        Debug.print("createCompany START");
+        
+        let company = companies.get(owner);
+        let res = 
+            switch (company) {
+                case (?company) { 
+                    let comp = Company.Company(owner, username, profilePictureUri, bankAddress);
+                    companies.put(owner, comp);
+                    Debug.print("createCompany company added");
+                    #Ok(owner);                  
+                };
+                case null { #Err(#UnauthorizedOwner); };
+            };
+
+        res;        
+    };
+
+    private func _mint(owner : Principal, properties: Types.Vec) : Types.Result<Nft.TokenIdentifier.TokenIdentifier, Types.NftError> {
+        Debug.print("_mint START");
+        
+        let company = companies.get(owner);
+
+        let res = 
+            switch (company) {
+                case (?company) { 
+                    let nft = nfts.get(tokenId);
+        
+                    switch (nft) {
+                        case (?nft) { return #Err(#ExistedNFT); };
+                        case (null) { 
+                            var newNft : Nft.Nft.Nft = {
+                                tokenId = tokenId;
+                                owner = owner;
+                                metadata = {
+                                    transferredAt = null;
+                                    transferredBy = null;
+                                    owner = owner;
+                                    operator = null;
+                                    properties = properties;
+                                    isBurned = false;
+                                    tokenIdentifier = tokenId;
+                                    burnedAt = null;
+                                    burnedBy = null;
+                                    approvedAt = null;
+                                    approvedBy = null;
+                                    mintedAt = Time.now();
+                                    mintedBy = custodiansv[0];
+                                }; 
+                            };
+                            
+                            nfts.put(tokenId, newNft);  
+                            Debug.print("_mint NFT added to nfts");
+
+                            company.addNftToOwn(newNft);
+                            Debug.print("_mint NFT added to company");
+
+                                
+                            tokenId += 1;
+                            transactionId += 1;
+                            return #Ok(tokenId);  
+                        };                 
+                    };
+                };
+                case null { #Err(#UnauthorizedOwner); };
+            };
+    };
+
+    // private func _transferTo(to: Principal, tokenId: Nft.TokenIdentifier.TokenIdentifier) : Types.Result<Types.TxIdentifier, Types.NftError> {
+    //     let res = _ownerOf(tokenId);
+
+    //     let ownerPri =
+    //         switch res {
+    //             case (#Ok(ownerRet)) ownerRet;
+    //             case (#Err(#OwnerNotFound)) { return #Err(#OwnerNotFound); };
+    //             case (#Err(_)) { return #Err(#Other("Something went wrong"))};
+    //         };
+
+
+    //     if (ownerPri == null_address) {
+    //         return #Err(#SelfTransfer);
+    //     };
+
+    //     let token = nfts.get(tokenId);
+    //     let newToken : Nft.Nft.Nft = 
+    //         switch (token) { 
+    //             case null { return #Err(#TokenNotFound)};
+    //             case (?token) { {
+    //                 tokenId = tokenId;
+    //                 owner = to;
+    //                 metadata = {
+    //                     transferredAt = ?Time.now();
+    //                     transferredBy = null;
+    //                     owner = to;
+    //                     operator = null;
+    //                     properties = token.metadata.properties;
+    //                     isBurned = false;
+    //                     tokenIdentifier = tokenId;
+    //                     burnedAt = token.metadata.burnedAt;
+    //                     burnedBy = token.metadata.burnedBy;
+    //                     approvedAt = token.metadata.approvedAt;
+    //                     approvedBy = token.metadata.burnedBy;
+    //                     mintedAt = token.metadata.mintedAt;
+    //                     mintedBy = token.metadata.mintedBy;
+    //                 }; 
+    //             }
+    //             };
+    //         };
+            
+    //     ignore nfts.replace(tokenId, newToken);
+    //     let company = companies.get(from);
+    //     switch (company) { 
+    //         case null { return #Err(#TokenNotFound); };
+    //         case (?company) { 
+    //             company.deletNftFromOwnById(tokenId);
+    //             company.addNftToOwn(newToken);
+    //         };
+    //     };
+        
+
+    //     let buyer = buyers.get(to);
+    //     switch (buyer) { 
+    //         case null { return #Err(#OwnerNotFound)};
+    //         case (?buyer) { buyer.addNftToOwn(newToken); };
+    //     };
+        
+
+    //     return #Ok()
+    // };
+
     private func computeTotalUniqueHolders() : Nat {
         var u_holders = 0;
 

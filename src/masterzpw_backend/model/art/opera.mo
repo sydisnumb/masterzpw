@@ -2,6 +2,7 @@ import HashMap "mo:base/HashMap";
 import Iter "mo:base/Iter";
 import Buffer "mo:base/Buffer";
 import Array "mo:base/Array";
+import Float "mo:base/Float";
 
 import Types "../types";
 import Nft "../art/nft";
@@ -11,32 +12,47 @@ module Opera {
     public type StableOpera = {
         id: Nat64;
         name : Text;
+        description: Text;
         pictureUri : Text;
+        price: Float;
         nfts : [Nft.TokenIdentifier.TokenIdentifier];
     };
 
-    public class Opera(identifier : Nat64, operaName : Text, picUri : Text, mintedNfts : [Nft.TokenIdentifier.TokenIdentifier]) {
+    public class Opera(identifier : Nat64, operaName : Text, opDescription: Text, picUri : Text, opPrice: Float, mintedNfts : [Nft.TokenIdentifier.TokenIdentifier]) {
         private var id = identifier;
         private var name = operaName;
+        private var description = opDescription;
         private var pictureUri = picUri;
+        private var price = opPrice;
         private var nfts = mintedNfts;
 
         public func getId() : Nat64 = id;
         public func getName() : Text = name;
+        public func getDescription() : Text = description;
         public func getPictureUri() : Text = pictureUri;
+        public func getPrice() : Float = price;
         public func getNftsIds() : [Nft.TokenIdentifier.TokenIdentifier] = mintedNfts;
 
         public func setId(newId : Nat64) : () {
             id := newId;
         };
+        
         public func setName(newName : Text) : () {
             name := newName;
+        };
+
+        public func setDescription(newDescription : Text) : () {
+            description := newDescription;
         };
 
         public func setPictureUri(newPictureUri : Text) : () {
             pictureUri := newPictureUri;
         };
         
+        public func setPrice(newPrice : Float) : () {
+            price := newPrice;
+        };
+
         public func setNftsIds(newNfts : [Nft.TokenIdentifier.TokenIdentifier]) : () {
             nfts := newNfts;
         };
@@ -55,7 +71,9 @@ module Opera {
             let op : StableOpera = {
                 id = id;
                 name = name;
+                description = description;
                 pictureUri = pictureUri;
+                price = price;
                 nfts = nfts;
             };
         };
@@ -72,7 +90,7 @@ module Opera {
     };
 
     public func deserialize(stableOpera: StableOpera) : Opera {
-        Opera(stableOpera.id, stableOpera.name, stableOpera.pictureUri, stableOpera.nfts);
+        Opera(stableOpera.id, stableOpera.name, stableOpera.description, stableOpera.pictureUri, stableOpera.price, stableOpera.nfts);
     };
 
     public func deserializeOperas(stableOperas: Iter.Iter<StableOpera>) : [Opera] {
