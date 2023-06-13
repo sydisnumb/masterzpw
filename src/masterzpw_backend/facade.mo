@@ -4,6 +4,7 @@ import Principal "mo:base/Principal";
 
 import Nft "./model/art/nft";
 import Company "./model/users/company";
+import Buyer "./model/users/buyer";
 import Types "./model/types";
 import Nat64 "mo:base/Nat64";
 
@@ -19,13 +20,26 @@ actor {
         await Ledger.createCompany(caller, username, profilePictureUri, bankAddress);
     };
 
+    public shared ({caller}) func createBuyer(username : Text, profilePictureUri : Text) : async Types.Result<Principal, Types.NftError> {
+        await Ledger.createBuyer(caller, username, profilePictureUri);
+    };
+
     public shared ({caller}) func createNewOpera(operaName : Text, operaDescription: Text, operaPicUri : Text, operaPrice: Float) : async Types.Result<Nat64, Types.NftError> {
         await Ledger.createNewOpera(caller, operaName, operaDescription, operaPicUri, operaPrice, 1);
     };
 
-    public shared ({caller}) func getOpera(operaId : Text, operaDescription: Text, operaPicUri : Text, operaPrice: Float) : async Types.Result<Nat64, Types.NftError> {
-        await Ledger.createNewOpera(caller, operaName, operaDescription, operaPicUri, operaPrice, 1);
+    // public shared ({caller}) func getOpera(operaId : Text) : async Types.Result<Nat64, Types.NftError> {
+    //     await Ledger.getOpera(operaId);
+    // };
+
+    public shared ({caller}) func getBuyer(owner : Principal) : async Types.Result<Buyer.StableBuyer, Types.NftError> {
+        await Ledger.getBuyer(owner);
     };
+
+    // public shared ({caller}) func getBuyers(page : Nat) : async Types.Result<Nat64, Types.NftError> {
+    //     await Ledger.createNewOpera(caller, page);
+    // };
+
 
     public shared ({caller}) func getCompany() : async Types.Result<Company.StableCompany, Errors.GenericError> {
         let res = await Ledger.getCompany(caller);

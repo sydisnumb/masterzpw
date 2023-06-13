@@ -381,7 +381,7 @@ actor {
                 case null {
                     let bu = Buyer.Buyer(owner, username, profilePictureUri);
                     buyers.put(owner, bu);                    
-                    Debug.print("createCompany company added" # debug_show(companies.size()));
+                    Debug.print("createCompany company added" # debug_show(buyers.size()));
                     #Ok(owner);
                 };
                 case (?buyer) { #Err(#UnauthorizedOwner); };
@@ -394,23 +394,34 @@ actor {
         Debug.print("getCompany START");
         let buyer = buyers.get(owner);
 
-        switch (buyer) {
-            case (?buyer) {
-                Debug.print("getCompany BUYER found");
+        let company = companies.get(owner);
+        switch (company) {
+            case (?company) {
+                Debug.print("getCompany COMPANY FOUND");
 
-                let company = companies.get(owner);
-                switch (company) {
-                    case (?company) {
-                        Debug.print("getCompany COMPANY FOUND");
-
-                        let stableCompany = company.serialize();
-                        return #Ok(stableCompany);
-                    };
-                    case null { return #Err(#Other("Company not found!")); };
-                };
+                let stableCompany = company.serialize();
+                return #Ok(stableCompany);
             };
-            case null { return #Err(#UnauthorizedOwner); };
+            case null { return #Err(#Other("Company not found!")); };
         };
+
+        // switch (buyer) {
+        //     case (?buyer) {
+        //         Debug.print("getCompany BUYER found");
+
+        //         let company = companies.get(owner);
+        //         switch (company) {
+        //             case (?company) {
+        //                 Debug.print("getCompany COMPANY FOUND");
+
+        //                 let stableCompany = company.serialize();
+        //                 return #Ok(stableCompany);
+        //             };
+        //             case null { return #Err(#Other("Company not found!")); };
+        //         };
+        //     };
+        //     case null { return #Err(#UnauthorizedOwner); };
+        // };
     };
 
     public query func getCompanies(owner : Principal, page : Nat) : async Types.Result<[Company.StableCompany], Types.NftError> {
@@ -422,8 +433,6 @@ actor {
                 Debug.print("getCompany BUYER found");
 
                 let buf = Buffer.Buffer<Company.Company>(0);
-
-
                 var i = 0;
 
                 for (key in companies.keys()) {
@@ -443,6 +452,62 @@ actor {
             case null { return #Err(#UnauthorizedOwner); };
         };
     };
+
+    public query func getBuyer(owner : Principal) : async Types.Result<Buyer.StableBuyer, Types.NftError> {
+        Debug.print("getBuyer START");
+        let buyer = buyers.get(owner);
+
+        switch (buyer) {
+            case (?buyer) {
+                Debug.print("getCompany COMPANY FOUND");
+
+                let stableBuyer = buyer.serialize();
+                return #Ok(stableBuyer);
+            };
+            case null { return #Err(#Other("Company not found!")); };
+        };
+
+        // switch (buyer) {
+        //     case (?buyer) {
+        //         Debug.print("getCompany BUYER found");
+
+        //         let company = companies.get(owner);
+        //         switch (company) {
+        //             case (?company) {
+        //                 Debug.print("getCompany COMPANY FOUND");
+
+        //                 let stableCompany = company.serialize();
+        //                 return #Ok(stableCompany);
+        //             };
+        //             case null { return #Err(#Other("Company not found!")); };
+        //         };
+        //     };
+        //     case null { return #Err(#UnauthorizedOwner); };
+        // };
+    };
+
+    // public query func getBuyers(owner : Principal) : async Types.Result<Buyer.StableBuyer, Types.NftError> {
+    //     Debug.print("getBuyers START");
+    //     let company = companies.get(owner);
+
+    //     switch (company) {
+    //         case (?company) {
+    //             Debug.print("getCompany BUYER found");
+
+    //             let company = companies.get(owner);
+    //             switch (company) {
+    //                 case (?company) {
+    //                     Debug.print("getCompany COMPANY FOUND");
+
+    //                     let stableCompany = company.serialize();
+    //                     return #Ok(stableCompany);
+    //                 };
+    //                 case null { return #Err(#Other("Company not found!")); };
+    //             };
+    //         };
+    //         case null { return #Err(#UnauthorizedOwner); };
+    //     };
+    // };
 
 
     private func _mint(owner : Principal, properties: Types.Vec) : Types.Result<Nft.TokenIdentifier.TokenIdentifier, Types.NftError> {
