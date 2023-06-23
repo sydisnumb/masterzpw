@@ -2,11 +2,13 @@
 import '../scss/styles.scss'
 
 import * as bootstrap from 'bootstrap'
-import logo from '../image/logo.jpg';
+import logo from '../image/logo.png';
 import landingImg from '../image/landing-image.png';
 
-import navbarDiv from '../html/components/navbar.html'
-import footerDiv from '../html/components/footer.html'
+import navbar from '../html/components/navbar.html'
+import footer from '../html/components/footer.html'
+import features from '../html/components/features.html'
+import aboutus from '../html/components/about-us.html'
 
 import { loadScript } from "@paypal/paypal-js";
 
@@ -31,20 +33,33 @@ if (paypal) {
 
 function loadComponents() {
     // navbar setting
-    const navbar = document.getElementById("navbar-home");
-    navbar.innerHTML += navbarDiv;
+    const navbarDiv = document.getElementById("navbar-home");
+    navbarDiv.innerHTML += navbar;
     const navbarLogo = document.getElementById("navbar-logo");
     navbarLogo.src = logo;
 
     // footer setting
-    const footer = document.getElementById("footer");
-    footer.innerHTML += footerDiv
+    const footerDiv = document.getElementById("footer");
+    footerDiv.innerHTML += footer
 
 }
 
 function loadPage() {
+    // landing setting
     const landingDiv = document.getElementById("landing-div");
     landingDiv.style.backgroundImage = `url(${landingImg})`
+
+    // mission setting
+    const missionDiv = document.getElementById("mission");
+    missionDiv.innerHTML += features
+
+
+    // features setting
+
+
+    // about us setting
+    const aboutusDiv = document.getElementById("aboutus");
+    aboutusDiv.innerHTML += aboutus
 
 }
 
