@@ -25,6 +25,10 @@
     "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
+    "@dfinity/agent": "^0.15.7",
+    "@dfinity/auth-client": "^0.15.7",
+    "@dfinity/identity": "^0.15.7",
+    "@dfinity/principal": "^0.15.7",
     "@paypal/paypal-js": "^6.0.0",
     "@popperjs/core": "^2.11.8",
     "bootstrap": "^5.3.0"

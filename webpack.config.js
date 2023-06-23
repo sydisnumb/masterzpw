@@ -1,5 +1,6 @@
 require("dotenv").config();
 const path = require("path");
+const autoprefixer = require('autoprefixer')
 const webpack = require("webpack");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
@@ -38,11 +39,12 @@ function initCanisterEnv() {
 }
 
 const isDevelopment = process.env.NODE_ENV !== "production";
-const MASTERZPW_CANISTER_ID = process.env.MASTERZPW_CANISTER_ID;
+const CONTROLLER_ID = process.env.CONTROLLER_CANISTER_ID;
 
 const frontendDirectory = "masterzpw_frontend";
 
-const frontend_entry = path.join("src", frontendDirectory, "src", "index.html");
+const frontend_entry_html = path.join("src", frontendDirectory, "src", "assets", "html", "pages", "index.html");
+const frontend_entry_js = path.join("src", frontendDirectory, "src", "assets", "js", "main.js");
 
 const canisterEnvVariables = initCanisterEnv();
 
@@ -53,9 +55,7 @@ module.exports = {
   target: "web",
   mode: isDevelopment ? "development" : "production",
   entry: {
-    // The frontend.entrypoint points to the HTML file for this build, so we need
-    // to replace the extension to `.js`.
-    index: path.join(__dirname, frontend_entry).replace(/\.html$/, ".js"),
+    index: path.join(__dirname, frontend_entry_js),
   },
   devtool: isDevelopment ? "source-map" : false,
   optimization: {
@@ -73,35 +73,58 @@ module.exports = {
     },
   },
   output: {
-    filename: "index.js",
+    filename: "main.js",
     path: path.join(__dirname, "dist", frontendDirectory),
   },
 
-  // Depending in the language or framework you are using for
-  // front-end development, add module loaders to the default
-  // webpack configuration. For example, if you are using React
-  // modules and CSS as described in the "Adding a stylesheet"
-  // tutorial, uncomment the following lines:
+  
   module: {
     rules: [
-       { test: /\.css$/, use: ['style-loader','css-loader'] },
-       { test: /\.(js|ts)x?$/, loader: "ts-loader" },
-       {
-           test: /\.s[ac]ss$/i,
-           use: [
-             // Creates `style` nodes from JS strings
-             "style-loader",
-             // Translates CSS into CommonJS
-             "css-loader",
-             // Compiles Sass to CSS
-             "sass-loader",
-           ],
-         },
+      {
+        test: /\.(scss)$/,
+        use: [
+          {
+            // Adds CSS to the DOM by injecting a `<style>` tag
+            loader: 'style-loader'
+          },
+          {
+            // Interprets `@import` and `url()` like `import/require()` and will resolve them
+            loader: 'css-loader'
+          },
+          {
+            // Loader for webpack to process CSS with PostCSS
+            loader: 'postcss-loader',
+            options: {
+              postcssOptions: {
+                plugins: () => [
+                  autoprefixer
+                ]
+              }
+            }
+          },
+          {
+            // Loads a SASS/SCSS file and compiles it to CSS
+            loader: 'sass-loader'
+          }
+        ]
+      },
+      {
+        test: /\.(png|svg|jpg|jpeg|gif)$/i,
+        type: 'asset/resource',
+      },
+      {
+        test: /\.html$/i,
+        loader: "html-loader",
+      },
+      {
+        test: /\.(woff|woff2|eot|ttf|otf)$/i,
+        type: 'asset/resource',
+      },
     ]
    },
   plugins: [
     new HtmlWebpackPlugin({
-      template: path.join(__dirname, frontend_entry),
+      template: path.join(__dirname, frontend_entry_html),
       cache: false,
     }),
     new webpack.EnvironmentPlugin({

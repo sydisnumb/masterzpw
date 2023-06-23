@@ -16,7 +16,7 @@
         "controller"
       ],
       "frontend": {
-        "entrypoint": "src/masterzpw_frontend/src/index.html"
+        "entrypoint": "src/masterzpw_frontend/src/assets/html/index.html"
       },
       "source": [
         "src/masterzpw_frontend/assets",

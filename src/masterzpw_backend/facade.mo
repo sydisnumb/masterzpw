@@ -16,6 +16,10 @@ actor {
         await Ledger.ownerOf(tokenId);
     };
 
+    public shared ({caller}) func checkAccessNumber(identity: Principal) : async Bool {
+        await Ledger.checkAccessNumber(identity);
+    };
+
     public shared ({caller}) func createCompany(username : Text, profilePictureUri : Text, bankAddress: Text) : async Types.Result<Principal, Types.NftError> {
         await Ledger.createCompany(caller, username, profilePictureUri, bankAddress);
     };
