@@ -13,9 +13,11 @@ import Int32 "mo:base/Int32";
 import Int "mo:base/Int";
 import Int64 "mo:base/Int64";
 import Time "mo:base/Time";
+import HashMap "mo:base/HashMap";
+import Array "mo:base/Array";
 
 
-module {
+module GenericTypes {
 
   public type InitArgs = {
     logo: Text;
@@ -67,7 +69,7 @@ module {
 
 
   // Error enum list
-  public type NftError = {
+  public type Error = {
     #SelfTransfer;
     #TokenNotFound;
     #TxNotFound;
@@ -77,6 +79,12 @@ module {
     #UnauthorizedOperator;
     #ExistedNFT;
     #OwnerNotFound;
+    #FirstAccess;
+
+    #CompanyNotFound;
+    #BuyerNotFound;
+    #SomethingWentWrong;
+
     #Other: Text;
   };
 
@@ -106,9 +114,14 @@ module {
 
 
 
-  public type Result<S, NftError> = {
+  public type Result<S, Error> = {
     #Ok : S;
-    #Err : NftError;
+    #Err : Error;
+  };
+
+  public type User<S, T> = {
+    #Buyer: UsersTypes.StableBuyer;
+    #Company: UsersTypes.StableCompany;
   };
 
   public func hash(nat64Id : Nat64) : Nat32 {
@@ -119,4 +132,78 @@ module {
   public func equal(nat64Id1 : Nat64, nat64Id2 : Nat64) : Bool {
     nat64Id1 == nat64Id2;
   };
+
 };
+
+module UsersTypes = {
+
+  public type StableBuyer = {
+      principal : Principal; 
+      username : Text;
+      profilePictureUri : Text;
+      ownerType : Text;
+      ownNfts : [(TokenIdentifier.TokenIdentifier, Nft.Nft)];
+  };
+
+  public type StableCompany = {
+      principal : Principal; 
+      username : Text;
+      profilePictureUri : Text;
+      bankAddress : Text;
+      ownerType : Text;
+      ownNfts : [(TokenIdentifier.TokenIdentifier, Nft.Nft)];
+      soldNfts : [(TokenIdentifier.TokenIdentifier, Nft.Nft)];
+  };
+};
+
+
+
+module Nft {
+    public type Nft = {
+        tokenId : TokenIdentifier.TokenIdentifier;
+        owner : Principal;
+        metadata : TokenMetadata;
+    };
+
+
+      // Token Metadat (to complete)
+    public type TokenMetadata = {
+        transferredAt: ?Int;
+        transferredBy: ?Principal;
+        owner: Principal;
+        operator: ?Principal;
+        properties: GenericTypes.Vec;
+        isBurned: Bool;
+        tokenIdentifier: TokenIdentifier.TokenIdentifier;
+        burnedAt: ?Nat64;
+        burnedBy: ?Principal;
+        approvedAt: ?Nat64;
+        approvedBy: ?Principal;
+        mintedAt: Int;
+        mintedBy: Principal;
+    };
+
+  
+    // public func deserializeNftsToMap(nfts : [Nft]) : HashMap.HashMap<TokenIdentifier.TokenIdentifier, Nft> {
+    //     let nftsTmp : [(TokenIdentifier.TokenIdentifier, Nft)] = Array.tabulate<(TokenIdentifier.TokenIdentifier, Nft)>(nfts.size(), func (i) { (nfts[i].tokenId, nfts[i]); });
+    //     let nfts = HashMap.fromIter<TokenIdentifier.TokenIdentifier, Nft>(nftsTmp.vals(), nftsTmp.size(), TokenIdentifier.equal, TokenIdentifier.hash);
+    // };
+
+};
+
+
+module TokenIdentifier {
+  public type TokenIdentifier = Nat64;
+
+  public func hash(tokenId : TokenIdentifier) : Nat32 {
+    let text = Nat64.toText(tokenId);
+    Text.hash(text);
+  };
+
+  public func equal(tokenId1 : TokenIdentifier, tokenId2 : TokenIdentifier) : Bool {
+    tokenId1 == tokenId2;
+  };
+
+  
+};
+

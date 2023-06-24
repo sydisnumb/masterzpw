@@ -6,21 +6,11 @@ import Nat "mo:base/Nat";
 import Iter "mo:base/Iter";
 import Array "mo:base/Array";
 
-import Nft "../art/nft";
+import Types "../types";
 
 
 module  {
-
-                                // (principal, username, pic, bank, type, owns, sold)
-    public type StableCompany = {
-        principal : Principal; 
-        username : Text;
-        profilePictureUri : Text;
-        bankAddress : Text;
-        ownerType : Text;
-        ownNfts : [(Nft.TokenIdentifier.TokenIdentifier, Nft.Nft.Nft)];
-        soldNfts : [(Nft.TokenIdentifier.TokenIdentifier, Nft.Nft.Nft)];
-    };
+   
 
     public class Company(pr: Principal, user: Text, picUri: Text, bankAddr: Text) = Self {
         
@@ -30,8 +20,8 @@ module  {
         private let bankAddress : Text = bankAddr;
         private let ownerType : Text = "company";
 
-        private var ownNfts = HashMap.HashMap<Nft.TokenIdentifier.TokenIdentifier, Nft.Nft.Nft>(1, Nft.TokenIdentifier.equal, Nft.TokenIdentifier.hash);
-        private var soldNfts = HashMap.HashMap<Nft.TokenIdentifier.TokenIdentifier, Nft.Nft.Nft>(1, Nft.TokenIdentifier.equal, Nft.TokenIdentifier.hash);
+        private var ownNfts = HashMap.HashMap<Types.TokenIdentifier.TokenIdentifier, Types.Nft.Nft>(1, Types.TokenIdentifier.equal, Types.TokenIdentifier.hash);
+        private var soldNfts = HashMap.HashMap<Types.TokenIdentifier.TokenIdentifier, Types.Nft.Nft>(1, Types.TokenIdentifier.equal, Types.TokenIdentifier.hash);
 
 
         public func getPrincipal() : Principal = principal;
@@ -44,16 +34,16 @@ module  {
 
         public func getOwnerType() : Text = ownerType;
 
-        public func getOwnNfts() : HashMap.HashMap<Nft.TokenIdentifier.TokenIdentifier, Nft.Nft.Nft> = ownNfts;
+        public func getOwnNfts() : HashMap.HashMap<Types.TokenIdentifier.TokenIdentifier, Types.Nft.Nft> = ownNfts;
 
-        public func getOwnNftsIds() : [Nft.TokenIdentifier.TokenIdentifier] {
+        public func getOwnNftsIds() : [Types.TokenIdentifier.TokenIdentifier] {
             let keys = ownNfts.keys();
             let ids = Iter.toArray(keys);
         };
 
-        public func getOwnNftsMetadata() : [Nft.Nft.TokenMetadata] {
+        public func getOwnNftsMetadata() : [Types.Nft.TokenMetadata] {
             let nfts = ownNfts.vals();
-            let buf = Buffer.Buffer<Nft.Nft.TokenMetadata>(0);
+            let buf = Buffer.Buffer<Types.Nft.TokenMetadata>(0);
 
             for (nft in nfts) {
                 buf.add(nft.metadata);
@@ -62,47 +52,47 @@ module  {
             Buffer.toArray(buf);
         };
 
-        public func getSoldNfts() : HashMap.HashMap<Nft.TokenIdentifier.TokenIdentifier, Nft.Nft.Nft> = soldNfts;
+        public func getSoldNfts() : HashMap.HashMap<Types.TokenIdentifier.TokenIdentifier, Types.Nft.Nft> = soldNfts;
 
         public func getOwnNftsSize() : Nat = ownNfts.size();
 
         public func getSoldNftsSize() : Nat = soldNfts.size();
 
 
-        public func getOwnNftById(tokenId : Nft.TokenIdentifier.TokenIdentifier) : ?Nft.Nft.Nft {
+        public func getOwnNftById(tokenId : Types.TokenIdentifier.TokenIdentifier) : ?Types.Nft.Nft {
             ownNfts.get(tokenId);
         };
 
-        public func getSoldNftById(tokenId : Nft.TokenIdentifier.TokenIdentifier) : ?Nft.Nft.Nft {
+        public func getSoldNftById(tokenId : Types.TokenIdentifier.TokenIdentifier) : ?Types.Nft.Nft {
             soldNfts.get(tokenId);
         };
 
-        public func setNftsToOwn(tokens: [(Nft.TokenIdentifier.TokenIdentifier, Nft.Nft.Nft)]) : () {
-            ownNfts := HashMap.fromIter<Nft.TokenIdentifier.TokenIdentifier, Nft.Nft.Nft>(tokens.vals(), tokens.size(), Nft.TokenIdentifier.equal, Nft.TokenIdentifier.hash);
+        public func setNftsToOwn(tokens: [(Types.TokenIdentifier.TokenIdentifier, Types.Nft.Nft)]) : () {
+            ownNfts := HashMap.fromIter<Types.TokenIdentifier.TokenIdentifier, Types.Nft.Nft>(tokens.vals(), tokens.size(), Types.TokenIdentifier.equal, Types.TokenIdentifier.hash);
         };
 
-        public func setNftsToSold(tokens: [(Nft.TokenIdentifier.TokenIdentifier, Nft.Nft.Nft)]) : () {
-            soldNfts := HashMap.fromIter<Nft.TokenIdentifier.TokenIdentifier, Nft.Nft.Nft>(tokens.vals(), tokens.size(), Nft.TokenIdentifier.equal, Nft.TokenIdentifier.hash);
+        public func setNftsToSold(tokens: [(Types.TokenIdentifier.TokenIdentifier, Types.Nft.Nft)]) : () {
+            soldNfts := HashMap.fromIter<Types.TokenIdentifier.TokenIdentifier, Types.Nft.Nft>(tokens.vals(), tokens.size(), Types.TokenIdentifier.equal, Types.TokenIdentifier.hash);
         };
 
-        public func addNftToOwn(token: Nft.Nft.Nft) : () {
+        public func addNftToOwn(token: Types.Nft.Nft) : () {
             ownNfts.put(token.tokenId, token);
         };
 
-        public func addNftsToSold(token: (Nft.TokenIdentifier.TokenIdentifier, Nft.Nft.Nft)) : () {
+        public func addNftsToSold(token: (Types.TokenIdentifier.TokenIdentifier, Types.Nft.Nft)) : () {
             soldNfts.put(token.0, token.1);
         };
 
-        public func removeNftFromOwnById(tokenId: Nft.TokenIdentifier.TokenIdentifier) : ?Nft.Nft.Nft {
+        public func removeNftFromOwnById(tokenId: Types.TokenIdentifier.TokenIdentifier) : ?Types.Nft.Nft {
             ownNfts.remove(tokenId);
         };
 
-        public func deletNftFromOwnById(tokenId: Nft.TokenIdentifier.TokenIdentifier) : () {
+        public func deletNftFromOwnById(tokenId: Types.TokenIdentifier.TokenIdentifier) : () {
             ownNfts.delete(tokenId);
         };
 
-        public func serialize() : StableCompany {
-            let buyer : StableCompany = {
+        public func serialize() : Types.UsersTypes.StableCompany {
+            let buyer : Types.UsersTypes.StableCompany = {
                 principal = principal; 
                 username = username;
                 profilePictureUri = profilePictureUri;
@@ -116,8 +106,8 @@ module  {
     };
 
 
-    public func serializeCompanies(companies : Iter.Iter<Company>) : [StableCompany] {
-        let buf = Buffer.Buffer<StableCompany>(0);
+    public func serializeCompanies(companies : Iter.Iter<Company>) : [Types.UsersTypes.StableCompany] {
+        let buf = Buffer.Buffer<Types.UsersTypes.StableCompany>(0);
 
         for (company in companies) {
             buf.add(company.serialize());
@@ -127,14 +117,14 @@ module  {
     };
 
 
-    public func deserialize(stableCompany : StableCompany) : Company {
+    public func deserialize(stableCompany : Types.UsersTypes.StableCompany) : Company {
         let company = Company(stableCompany.principal, stableCompany.username, stableCompany.profilePictureUri, stableCompany.bankAddress);
         company.setNftsToOwn(stableCompany.ownNfts);
         company.setNftsToSold(stableCompany.soldNfts);
         company;
     };
 
-    public func deserializeCompanies(stableCompanies : Iter.Iter<StableCompany>) : [Company] {
+    public func deserializeCompanies(stableCompanies : Iter.Iter<Types.UsersTypes.StableCompany>) : [Company] {
         let buf = Buffer.Buffer<Company>(0);
 
         for (company in stableCompanies) {
@@ -144,7 +134,7 @@ module  {
         Buffer.toArray(buf);
     };
 
-    public func deserializeCompaniesToMap(stableCompanies : [StableCompany]) : HashMap.HashMap<Principal, Company> {
+    public func deserializeCompaniesToMap(stableCompanies : [Types.UsersTypes.StableCompany]) : HashMap.HashMap<Principal, Company> {
         let companiesTmp : [(Principal, Company)] = Array.tabulate<(Principal, Company)>(stableCompanies.size(), func (i) { (stableCompanies[i].principal, deserialize(stableCompanies[i])); });
         let companies = HashMap.fromIter<Principal, Company>(companiesTmp.vals(), companiesTmp.size(), Principal.equal, Principal.hash);
     };

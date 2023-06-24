@@ -5,7 +5,6 @@ import Array "mo:base/Array";
 import Float "mo:base/Float";
 
 import Types "../types";
-import Nft "../art/nft";
 
 
 module Opera {
@@ -15,10 +14,10 @@ module Opera {
         description: Text;
         pictureUri : Text;
         price: Float;
-        nfts : [Nft.TokenIdentifier.TokenIdentifier];
+        nfts : [Types.TokenIdentifier.TokenIdentifier];
     };
 
-    public class Opera(identifier : Nat64, operaName : Text, opDescription: Text, picUri : Text, opPrice: Float, mintedNfts : [Nft.TokenIdentifier.TokenIdentifier]) {
+    public class Opera(identifier : Nat64, operaName : Text, opDescription: Text, picUri : Text, opPrice: Float, mintedNfts : [Types.TokenIdentifier.TokenIdentifier]) {
         private var id = identifier;
         private var name = operaName;
         private var description = opDescription;
@@ -31,7 +30,7 @@ module Opera {
         public func getDescription() : Text = description;
         public func getPictureUri() : Text = pictureUri;
         public func getPrice() : Float = price;
-        public func getNftsIds() : [Nft.TokenIdentifier.TokenIdentifier] = mintedNfts;
+        public func getNftsIds() : [Types.TokenIdentifier.TokenIdentifier] = mintedNfts;
 
         public func setId(newId : Nat64) : () {
             id := newId;
@@ -53,11 +52,11 @@ module Opera {
             price := newPrice;
         };
 
-        public func setNftsIds(newNfts : [Nft.TokenIdentifier.TokenIdentifier]) : () {
+        public func setNftsIds(newNfts : [Types.TokenIdentifier.TokenIdentifier]) : () {
             nfts := newNfts;
         };
 
-        public func checkNftById(tokenId : Nft.TokenIdentifier.TokenIdentifier) : Bool {
+        public func checkNftById(tokenId : Types.TokenIdentifier.TokenIdentifier) : Bool {
             for (id in nfts.vals()) {
                 if (id == tokenId) {
                     return true;
@@ -105,7 +104,7 @@ module Opera {
 
     public func deserializeOperasToMap(stableOperas: [StableOpera]) : HashMap.HashMap<Nat64, Opera> {
         let operaTmp : [(Nat64, Opera)] = Array.tabulate<(Nat64, Opera)>(stableOperas.size(), func (i) { (stableOperas[i].id, deserialize(stableOperas[i])); });
-        let operas = HashMap.fromIter<Nat64, Opera>(operaTmp.vals(), operaTmp.size(), Types.equal, Types.hash);
+        let operas = HashMap.fromIter<Nat64, Opera>(operaTmp.vals(), operaTmp.size(), Types.GenericTypes.equal, Types.GenericTypes.hash);
     };
 
 };

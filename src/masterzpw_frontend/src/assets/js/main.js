@@ -82,7 +82,7 @@ const init = async () => {
     logInBtn.onclick = async () => {
       authClient.login({
         identityProvider: iiUrlEl.value,
-        onSuccess: () => {
+        onSuccess: async () => {
           console.log("go to log in")
             // At this point we're authenticated, and we can get the identity from the auth client:
             const identity = authClient.getIdentity();
@@ -90,7 +90,7 @@ const init = async () => {
             // Using the interface description of our webapp, we create an actor that we use to call the service methods.
             controller = createActor(process.env.CONTROLLER_CANISTER_ID, {agent});
 
-            let firstAccessFlag = await controller.checkAccessNumber(identity);
+            let firstAccessFlag = await controller.login(identity);
 
             if (firstAccessFlag) {
                 console.log("pagina di login");

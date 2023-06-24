@@ -3,5 +3,9 @@ module {
         #CompanyNotFound;
         #BuyerNotFound;
         #SomethingWentWrong;
+    };
+
+    public type Info = {
+        #FirstAccess;
     }
 }
