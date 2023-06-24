@@ -12,6 +12,7 @@ import landing from '../html/components/landing.html'
 import features from '../html/components/features.html'
 import aboutus from '../html/components/about-us.html'
 import getstarted from '../html/components/get-started.html'
+import spinner from '../html/components/spinner.html'
 
 
 
@@ -22,6 +23,8 @@ function loadComponents() {
     navbarDiv.innerHTML += navbar;
     const navbarLogo = document.getElementById("navbar-logo");
     navbarLogo.src = logo;
+    const signupHref = document.getElementById('signup-btn');
+    signupHref.href = process.env.II_URL;
 
     // footer setting
     const footerDiv = document.getElementById("footer");
@@ -72,62 +75,67 @@ const logInBtn = document.getElementById("login-btn");
 
 
 const init = async () => {
-    let actor = controller;
+    let act = controller;
     let authClient = await AuthClient.create();
+    var alertDiv = document.getElementById("alert-div");
 
     signUpBtn.onclick = async () => {
         authClient.login({
             identityProvider: process.env.II_URL,
             onSuccess: () => {
-              var alertDiv = document.getElementById("successAlert");
               alertDiv.innerHTML = "Your Internet Identity is successfully registrated! Welcome to COOL ART.";
               alertDiv.className = 'alert-success';
-              alterObj = alertDiv.alert();
-              alertObj.alert('show')
+              alertDiv.style.display = "block";
 
               setTimeout(function() {
-                alertObj.close();
+                alertDiv.style.display = "none";
               }, 3000);
             },
             onError: () => {
               alertDiv.innerHTML = "Something went wrong! Try again.";
               alertDiv.className = 'alert-danger';
-              alterObj = alertDiv.alert();
-              alertObj.alert('show');
+              alertDiv.style.display = "block";
 
               setTimeout(function() {
-                alertObj.close();
+                alertDiv.style.display = "none";
               }, 3000);
             }          
           });
     };
   
     logInBtn.onclick = async () => {
-      authClient.login({
-        identityProvider: iiUrlEl.value,
-        onSuccess: async () => {
-          console.log("go to log in")
-            // At this point we're authenticated, and we can get the identity from the auth client:
+        authClient.login({
+          identityProvider: process.env.II_URL,
+          onSuccess: async () => {
+            console.log("go to log in")
+            const bodyCont = document.getElementById("body-content")
+            bodyCont.style.display = "none";
+            document.body.innerHTML +=  spinner;
             const identity = authClient.getIdentity();
+            console.log(identity);
+
             const agent = new HttpAgent({identity});
-            // Using the interface description of our webapp, we create an actor that we use to call the service methods.
-            controller = createActor(process.env.CONTROLLER_CANISTER_ID, {agent});
+            act = createActor(process.env.CONTROLLER_CANISTER_ID, {
+              agent,
+              canisterId: process.env.CONTROLLER_CANISTER_ID,
+            });
 
-            let firstAccessFlag = await controller.login(identity);
+            let result = await act.login();
 
-            if (firstAccessFlag) {
-                console.log("pagina di login");
+            if (result.Err.FirstAccess) {
+                console.log("visualizza profilo utente")
+                window.location.href = './complete-profile.html';
             } else {
                 console.log("visualizza profilo utente")
             }
-        },
-        onError: () => {
-          console.log("error")
-        }          
+          },
+          onError: () => {
+            console.log("error")
+          }          
       });
     };
 
-    
+  
 }
 
 init();

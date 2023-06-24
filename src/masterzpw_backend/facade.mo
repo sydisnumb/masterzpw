@@ -9,10 +9,6 @@ import Ledger "canister:ledger";
 
 actor {
 
-    public shared ({caller}) func hello(tokenId: Types.TokenIdentifier.TokenIdentifier) : async Types.GenericTypes.Result<Principal, Types.GenericTypes.Error> {
-        await Ledger.ownerOf(tokenId);
-    };
-
     public shared ({caller}) func login(): async Types.GenericTypes.Result<Types.GenericTypes.User<Types.UsersTypes.StableBuyer, Types.UsersTypes.StableCompany>, Types.GenericTypes.Error> {
         await Ledger.login(caller);
     };

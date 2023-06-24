@@ -48,14 +48,20 @@ const frontend_entry_js = path.join("src", frontendDirectory, "src", "assets", "
 
 const canisterEnvVariables = initCanisterEnv();
 
-const internetIdentityUrl = network === "local" ? `http://localhost:4943/?canisterId=${canisterEnvVariables["INTERNET_IDENTITY_CANISTER_ID"]}` : `https://identity.ic0.app`
+const internetIdentityUrl = network === "local" ? `http://${canisterEnvVariables["INTERNET_IDENTITY_CANISTER_ID"]}.localhost:4943` : "https://identity.ic0.app"
 
+const paths = {
+  pages : path.join("src", frontendDirectory, "src", "assets", "html", "pages"),
+  components: path.join("src", frontendDirectory, "src", "assets", "html", "components"),
+  js: path.join("src", frontendDirectory, "src", "assets", "js")
+}
 
 module.exports = {
   target: "web",
   mode: isDevelopment ? "development" : "production",
   entry: {
     index: path.join(__dirname, frontend_entry_js),
+    completeProfile: path.join(__dirname, paths.js, "complete-profile.js")
   },
   devtool: isDevelopment ? "source-map" : false,
   optimization: {
@@ -73,8 +79,9 @@ module.exports = {
     },
   },
   output: {
-    filename: "main.js",
+    filename: '[name].bundle.js',
     path: path.join(__dirname, "dist", frontendDirectory),
+    publicPath: 'auto'
   },
 
   
@@ -125,7 +132,15 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       template: path.join(__dirname, frontend_entry_html),
+      chunks: ['index'],
       cache: false,
+      filename: "index.html"
+    }),
+    new HtmlWebpackPlugin({
+      template: path.join(__dirname, paths.pages, "complete-profile.html"),
+      chunks: ['completeProfile'],
+      cache: false,
+      filename: "complete-profile.html"
     }),
     new webpack.EnvironmentPlugin({
       NODE_ENV: "development",

@@ -79,7 +79,7 @@ module GenericTypes {
     #UnauthorizedOperator;
     #ExistedNFT;
     #OwnerNotFound;
-    #FirstAccess;
+    #FirstAccess: Bool;
 
     #CompanyNotFound;
     #BuyerNotFound;

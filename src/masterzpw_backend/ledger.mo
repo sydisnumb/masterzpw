@@ -505,7 +505,7 @@ actor {
                         return #Ok(#Company(stableCompany));
                     };
                     case null { 
-                        return #Err(#FirstAccess); 
+                        return #Err(#FirstAccess(true)); 
                     };
                 };
             };
