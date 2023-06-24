@@ -8,9 +8,12 @@ import icponchainImg from '../image/icp-onchain.png';
 
 import navbar from '../html/components/navbar.html'
 import footer from '../html/components/footer.html'
+import landing from '../html/components/landing.html'
 import features from '../html/components/features.html'
 import aboutus from '../html/components/about-us.html'
 import getstarted from '../html/components/get-started.html'
+
+
 
 
 function loadComponents() {
@@ -30,6 +33,8 @@ function loadComponents() {
 
 function loadPage() {
     // landing setting
+    const landingDiv = document.getElementById("landing-ext-div");
+    landingDiv.innerHTML += landing;
     const pictureLandingImg = document.getElementById("picture-landing");
     pictureLandingImg.src = landingImg;
     const logoLandingDiv = document.getElementById("logo-landing");
@@ -53,6 +58,8 @@ loadPage();
 
 
 
+
+
 // callback for button
 
 import { HttpAgent } from "@dfinity/agent";
@@ -67,14 +74,30 @@ const logInBtn = document.getElementById("login-btn");
 const init = async () => {
     let actor = controller;
     let authClient = await AuthClient.create();
+
     signUpBtn.onclick = async () => {
         authClient.login({
             identityProvider: process.env.II_URL,
             onSuccess: () => {
-              console.log("back to home")
+              var alertDiv = document.getElementById("successAlert");
+              alertDiv.innerHTML = "Your Internet Identity is successfully registrated! Welcome to COOL ART.";
+              alertDiv.className = 'alert-success';
+              alterObj = alertDiv.alert();
+              alertObj.alert('show')
+
+              setTimeout(function() {
+                alertObj.close();
+              }, 3000);
             },
             onError: () => {
-              console.log("error")
+              alertDiv.innerHTML = "Something went wrong! Try again.";
+              alertDiv.className = 'alert-danger';
+              alterObj = alertDiv.alert();
+              alertObj.alert('show');
+
+              setTimeout(function() {
+                alertObj.close();
+              }, 3000);
             }          
           });
     };
