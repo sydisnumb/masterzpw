@@ -43,8 +43,8 @@ const CONTROLLER_ID = process.env.CONTROLLER_CANISTER_ID;
 
 const frontendDirectory = "masterzpw_frontend";
 
-const frontend_entry_html = path.join("src", frontendDirectory, "src", "assets", "html", "pages", "index.html");
-const frontend_entry_js = path.join("src", frontendDirectory, "src", "assets", "js", "main.js");
+const frontend_entry_html = path.join("src", frontendDirectory, "index.html");
+const frontend_entry_js = path.join("src", frontendDirectory, "index.js");
 
 const canisterEnvVariables = initCanisterEnv();
 
@@ -61,7 +61,6 @@ module.exports = {
   mode: isDevelopment ? "development" : "production",
   entry: {
     index: path.join(__dirname, frontend_entry_js),
-    completeProfile: path.join(__dirname, paths.js, "complete-profile.js")
   },
   devtool: isDevelopment ? "source-map" : false,
   optimization: {
@@ -135,12 +134,6 @@ module.exports = {
       chunks: ['index'],
       cache: false,
       filename: "index.html"
-    }),
-    new HtmlWebpackPlugin({
-      template: path.join(__dirname, paths.pages, "complete-profile.html"),
-      chunks: ['completeProfile'],
-      cache: false,
-      filename: "complete-profile.html"
     }),
     new webpack.EnvironmentPlugin({
       NODE_ENV: "development",

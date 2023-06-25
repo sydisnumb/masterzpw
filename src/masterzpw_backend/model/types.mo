@@ -70,20 +70,20 @@ module GenericTypes {
 
   // Error enum list
   public type Error = {
-    #SelfTransfer;
-    #TokenNotFound;
-    #TxNotFound;
-    #SelfApprove;
-    #OperatorNotFound;
-    #UnauthorizedOwner;
-    #UnauthorizedOperator;
-    #ExistedNFT;
-    #OwnerNotFound;
+    #SelfTransfer: Bool;
+    #TokenNotFound: Bool;
+    #TxNotFound: Bool;
+    #SelfApprove: Bool;
+    #OperatorNotFound: Bool;
+    #UnauthorizedOwner: Bool;
+    #UnauthorizedOperator: Bool;
+    #ExistedNFT: Bool;
+    #OwnerNotFound: Bool;
     #FirstAccess: Bool;
 
-    #CompanyNotFound;
-    #BuyerNotFound;
-    #SomethingWentWrong;
+    #CompanyNotFound: Bool;
+    #BuyerNotFound: Bool;
+    #SomethingWentWrong: Bool;
 
     #Other: Text;
   };

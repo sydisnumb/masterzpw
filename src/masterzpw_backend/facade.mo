@@ -14,7 +14,11 @@ actor {
     };
 
     public shared ({caller}) func createCompany(username : Text, profilePictureUri : Text, bankAddress: Text) : async Types.GenericTypes.Result<Principal, Types.GenericTypes.Error> {
-        await Ledger.createCompany(caller, username, profilePictureUri, bankAddress);
+        if (username != "" and bankAddress != "") {
+            return await Ledger.createCompany(caller, username, profilePictureUri, bankAddress);
+        };
+        
+        return #Err(#Other("Be sure to insert all required fields."))
     };
 
     public shared ({caller}) func createBuyer(username : Text, profilePictureUri : Text) : async Types.GenericTypes.Result<Principal, Types.GenericTypes.Error> {
@@ -29,8 +33,8 @@ actor {
     //     await Ledger.getOpera(operaId);
     // };
 
-    public shared ({caller}) func getBuyer(owner : Principal) : async Types.GenericTypes.Result<Types.UsersTypes.StableBuyer, Types.GenericTypes.Error> {
-        await Ledger.getBuyer(owner);
+    public shared ({caller}) func getBuyer() : async Types.GenericTypes.Result<Types.UsersTypes.StableBuyer, Types.GenericTypes.Error> {
+        await Ledger.getBuyer(caller);
     };
 
     // public shared ({caller}) func getBuyers(page : Nat) : async Types.GenericTypes.Result<Nat64, Types.GenericTypes.Error> {
@@ -43,7 +47,7 @@ actor {
 
         switch res {
             case (#Ok(stableComp)) { return #Ok(stableComp); };
-            case (#Err(_)) { return #Err(#SomethingWentWrong); };
+            case (#Err(_)) { return #Err(#SomethingWentWrong(true)); };
         }
     };
 
@@ -53,7 +57,7 @@ actor {
 
         switch res {
             case (#Ok(stableComps)) { return #Ok(stableComps); };
-            case (#Err(_)) { return #Err(#SomethingWentWrong); };
+            case (#Err(_)) { return #Err(#SomethingWentWrong(true)); };
         }
     };
 

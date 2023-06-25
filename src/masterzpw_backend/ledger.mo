@@ -140,7 +140,7 @@ actor {
         let res =
             switch(token) {
                 case (?token) { #Ok(token.metadata); };
-                case null { #Err(#TokenNotFound); };
+                case null { #Err(#TokenNotFound(true)); };
             };
     };
 
@@ -154,7 +154,7 @@ actor {
                     let ownerO1 = buyers.get(owner);
                     switch(ownerO1) {
                         case (?ownerO1) { #Ok(ownerO1.getOwnNftsSize()); };
-                        case null { #Err(#OwnerNotFound); };
+                        case null { #Err(#OwnerNotFound(true)); };
                     };
                 };
             };
@@ -175,7 +175,7 @@ actor {
                     let ownerO1 = buyers.get(owner);
                     switch(ownerO1) {
                         case (?ownerO1) { #Ok(ownerO1.getOwnNftsIds()); };
-                        case null { #Err(#OwnerNotFound); };
+                        case null { #Err(#OwnerNotFound(true)); };
                     };
                 };
             };
@@ -191,7 +191,7 @@ actor {
                     let ownerO1 = buyers.get(owner);
                     switch(ownerO1) {
                         case (?ownerO1) { #Ok(ownerO1.getOwnNftsMetadata()); };
-                        case null { #Err(#OwnerNotFound); };
+                        case null { #Err(#OwnerNotFound(true)); };
                     };
                 };
             };
@@ -207,22 +207,22 @@ actor {
         let ownerPri =
             switch res {
                 case (#Ok(ownerRet)) ownerRet;
-                case (#Err(#OwnerNotFound)) { return #Err(#OwnerNotFound); };
+                case (#Err(#OwnerNotFound(true))) { return #Err(#OwnerNotFound(true)); };
                 case (#Err(_)) { return #Err(#Other("Something went wrong"))};
             };
 
         if (ownerPri != from) {
-            return #Err(#UnauthorizedOwner);
+            return #Err(#UnauthorizedOwner(true));
         };
 
         if (ownerPri == to) {
-            return #Err(#SelfTransfer);
+            return #Err(#SelfTransfer(true));
         };
 
         let token = nfts.get(tokenId);
         let newToken : Types.Nft.Nft =
             switch (token) {
-                case null { return #Err(#TokenNotFound)};
+                case null { return #Err(#TokenNotFound(true))};
                 case (?token) { {
                     tokenId = tokenId;
                     owner = to;
@@ -248,7 +248,7 @@ actor {
         ignore nfts.replace(tokenId, newToken);
         let company = companies.get(from);
         switch (company) {
-            case null { return #Err(#TokenNotFound); };
+            case null { return #Err(#TokenNotFound(true)); };
             case (?company) {
                 company.deletNftFromOwnById(tokenId);
                 company.addNftToOwn(newToken);
@@ -258,7 +258,7 @@ actor {
 
         let buyer = buyers.get(to);
         switch (buyer) {
-            case null { return #Err(#OwnerNotFound)};
+            case null { return #Err(#OwnerNotFound(true))};
             case (?buyer) { buyer.addNftToOwn(newToken); };
         };
 
@@ -275,7 +275,7 @@ actor {
             switch res {
                 case (#Ok(tokenId)) {
                     #Ok(transactionId); };
-                case (#Err(_)) { #Err(#ExistedNFT) };
+                case (#Err(_)) { #Err(#ExistedNFT(true)) };
             };
     };
 
@@ -285,7 +285,7 @@ actor {
         let res =
             switch (tx) {
                 case (?tx) { #Ok(tx); };
-                case null { #Err(#TxNotFound); };
+                case null { #Err(#TxNotFound(true)); };
             }
     };
 
@@ -346,7 +346,7 @@ actor {
                 return #Ok(opera.getId());
 
                 };
-            case null { return #Err(#UnauthorizedOwner); };
+            case null { return #Err(#UnauthorizedOwner(true)); };
         };
     };
 
@@ -364,7 +364,7 @@ actor {
                     Debug.print("createCompany company added" # debug_show(companies.size()));
                     #Ok(owner);
                 };
-                case (?company) { #Err(#UnauthorizedOwner); };
+                case (?company) {  #Ok(owner); };
             };
 
         res;
@@ -384,7 +384,7 @@ actor {
                     Debug.print("createCompany company added" # debug_show(buyers.size()));
                     #Ok(owner);
                 };
-                case (?buyer) { #Err(#UnauthorizedOwner); };
+                case (?buyer) { #Ok(owner); };
             };
 
         res;
@@ -448,8 +448,28 @@ actor {
 
                 return #Ok(stableCompanies);
             };
-            case null { return #Err(#UnauthorizedOwner); };
+            case null { return #Err(#UnauthorizedOwner(true)); };
         };
+    };
+
+     public query func getAllCompanies(page : Nat) : async Types.GenericTypes.Result<[Types.UsersTypes.StableCompany], Types.GenericTypes.Error> {
+
+        let buf = Buffer.Buffer<Company.Company>(0);
+        var i = 0;
+
+        for (key in companies.keys()) {
+            if (i >= page*20 and i <= page*20 + 20) {
+                let comp = companies.get(key);
+                switch comp {
+                    case (?comp) { buf.add(comp) };
+                    case null { Debug.print("getCompany No company"); };
+                }                         
+            };
+        };
+
+        let stableCompanies = Company.serializeCompanies(buf.vals());
+
+        return #Ok(stableCompanies);
     };
 
     public query func getBuyer(owner : Principal) : async Types.GenericTypes.Result<Types.UsersTypes.StableBuyer, Types.GenericTypes.Error> {
@@ -481,7 +501,7 @@ actor {
         //             case null { return #Err(#Other("Company not found!")); };
         //         };
         //     };
-        //     case null { return #Err(#UnauthorizedOwner); };
+        //     case null { return #Err(#UnauthorizedOwner(true)); };
         // };
     };
 
@@ -490,7 +510,7 @@ actor {
 
         switch (buyer) {
             case (?buyer) {
-                Debug.print("getCompany COMPANY FOUND");
+                Debug.print("buyer log in");
 
                 let stableBuyer = buyer.serialize();
                 return #Ok(#Buyer(stableBuyer));
@@ -499,7 +519,7 @@ actor {
                 let company = companies.get(owner);
                 switch (company) {
                     case (?company) {
-                        Debug.print("getCompany COMPANY FOUND");
+                        Debug.print("company login");
 
                         let stableCompany = company.serialize();
                         return #Ok(#Company(stableCompany));
@@ -547,7 +567,7 @@ actor {
                 Debug.print(debug_show(nft));
 
                 switch (nft) {
-                    case (?nft) { return #Err(#ExistedNFT); };
+                    case (?nft) { return #Err(#ExistedNFT(true)); };
                     case (null) {
                         var newNft : Types.Nft.Nft = {
                             tokenId = tokenId;
@@ -584,7 +604,7 @@ actor {
             };
             case null { 
                 Debug.print("_mint NFT no company");
-                #Err(#UnauthorizedOwner);
+                #Err(#UnauthorizedOwner(true));
             };
         };
     };
@@ -674,7 +694,7 @@ actor {
         let res =
             switch(nft) {
                 case (?nft) { #Ok(nft.owner); };
-                case null { #Err(#TokenNotFound); };
+                case null { #Err(#TokenNotFound(true)); };
             };
     };
 
