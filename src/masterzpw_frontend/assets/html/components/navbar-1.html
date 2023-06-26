@@ -1,0 +1,27 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+    <div class="container">
+        <a><img id="feed-a" width="180" height="auto" class="navbar-brand"></a>
+        <div class="rounded-circle" style="width: 50px; height: 50px;">
+            <button id="toogler-btn" class="w-100 h-100 navbar-toggler border-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar"
+                aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
+                <img id="toggler-icon" class="img-fluid">
+            </button>
+        </div>
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+                    <li class="nav-item">
+                        <a id="profile-a" class="nav-link" aria-current="page">View profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <a id="logout-a" class="nav-link">Log out</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>

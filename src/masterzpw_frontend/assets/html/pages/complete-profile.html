@@ -1,0 +1,51 @@
+<div id="content-div" class="d-flex justify-content-center vh-100 align-items-center">
+
+
+  <div id="complete-form" style="max-width: 70%; display: none;" class="bg-light shadow-lg pt-3 pb-5 px-4 rounded">
+    <div class="container">
+      <img id="logo-img" width="200" class="text-center" height="auto">
+
+
+
+      <h3 class="py-1 border-bottom border-primary">Here we are!</h3>
+      <p class="lead">Give us some information to complete your registration:</p>
+
+
+        <div class="input-group mb-4">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="basic-addon1">@</span>
+          </div>
+          <input id="username-field" type="text" class="form-control" placeholder="Username" aria-label="Username"
+            aria-describedby="basic-addon1">
+        </div>
+
+        <label for="basic-url">Your IPFS profile picture's URL</label>
+        <div class="input-group mb-4">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="basic-addon3">https://ipfs.io/ipfs/</span>
+          </div>
+          <input type="text" class="form-control" id="profilepic-field" aria-describedby="basic-addon3">
+        </div>
+
+        <div class="form-check mb-4">
+          <input type="checkbox" role="switch" class="form-check-input" id="artist-checkbox">
+          <label class="form-check-label" for="artist-checkbox">Do you want to register as an artist?</label>
+        </div>
+
+        <div id="merchantId-div" class="form-group mb-4" style="display: none;">
+          <label for="merchantid-field">PayPal merchant ID</label>
+          <input required type="url" name="merchantid-field" class="form-control" id="merchantid-field"
+            placeholder="Your PayPal business account merchant ID" disabled>
+          <small>More information aboun PayPal merchand ID available <a
+              href="https://www.paypal.com/us/cshelp/article/how-do-i-find-my-secure-merchant-id-on-my-paypal-account-help538">here</a></small>
+        </div>
+
+        <button type="button" id="submit-btn" class="btn btn-secondary mb-4">Submit</button>
+
+    </div>
+
+    
+
+  </div>
+
+</div>
