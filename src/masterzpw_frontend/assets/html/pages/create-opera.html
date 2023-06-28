@@ -1,0 +1,54 @@
+<div id="content-div" class="d-flex justify-content-center vh-100 align-items-center">
+
+
+    <div id="newopera-form" style="max-width: 70%;" class="bg-light shadow-lg pt-3 pb-5 px-4 rounded">
+        <div class="container">
+            <img id="logo-img" width="200" class="text-center" height="auto">
+
+
+
+            <h3 class="py-1 border-bottom border-primary">Create a new opera.</h3>
+            <p class="lead">Fill the form with all the information related to your Opera:</p>
+
+
+            <label class="mt-4" for="opera-url">Title</label>
+            <div class="input-group mb-4">
+                <input id="title-field" type="text" class="form-control" placeholder="Opera title">
+            </div>
+
+            <label for="opera-url">IPFS url</label>
+            <div class="input-group mb-4">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon3">https://ipfs.io/ipfs/</span>
+                </div>
+                <input type="text" class="form-control" id="opera-url" placeholder="last part of the IPFS url"
+                    aria-describedby="basic-addon3">
+            </div>
+
+            <label for="description-field">Description</label>
+            <div class="input-group mb-4">
+               
+                <input required type="url" id="description-field" class="form-control" id="merchantid-field"
+                    placeholder="Description" maxlength="500">
+            </div>
+
+            <label for="price-url">Price</label>
+            <div class="input-group mb-4">
+                <input pattern="\d*" type="text" class="form-control" id="price-field" placeholder="Price"
+                    aria-describedby="basic-addon3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="basic-addon3">Euro</span>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end align-items-center">
+                <button type="button" id="cancel-btn" class="btn btn-outline-secondary mx-1">Cancel</button>
+                <button type="button" id="submit-btn" class="btn btn-primary mx-1">Create new opera</button>
+            </div>
+
+        </div>
+
+
+
+    </div>
+
+</div>

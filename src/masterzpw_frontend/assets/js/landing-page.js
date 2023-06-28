@@ -6,7 +6,8 @@ let routerfn = require('./router')
 import '../scss/styles.scss'
 
 import completeProfile from './complete-profile.js'
-import profile from '../js/profile.js'
+import profile from './profile.js'
+import feedView from '../js/feed.js'
 
 
 import logo from '../image/logo.png';
@@ -30,19 +31,39 @@ import AbstractView from "./abstract-view.js";
 
 export default class extends AbstractView {
 
-    
+    checkFirstLogin = async () => {   
+      let act = controller;
+      let authClient = await AuthClient.create();
+      const identity = authClient.getIdentity();
+      const agent = new HttpAgent({identity});
+
+      act = createActor(process.env.CONTROLLER_CANISTER_ID, {
+        agent,
+        canisterId: process.env.CONTROLLER_CANISTER_ID,
+      });
+
+      let result = await act.login();
+      
+      if (result.Ok) {
+        if (result.Ok.Buyer){
+          return [false, "buyer"];
+        }
+        
+        return [false, "company"];
+      } else if(result.Err.FirstAccess) {
+        return true;
+      }
+    }
 
     init = async () => {
 
-      window.addEventListener("popstate", async () =>{
-        routerfn.router(this.routesLandingPage)
-      });
+      window.addEventListener("popstate", async () => {routerfn.router(this.routesLandingPage)});
 
       const signUpBtn = document.getElementById("signup-btn");
       const logInBtn = document.getElementById("login-btn");
 
-      let act = controller;
       let authClient = await AuthClient.create();
+
 
       signUpBtn.onclick = async () => {
           authClient.login({
@@ -60,27 +81,18 @@ export default class extends AbstractView {
       logInBtn.onclick = async () => {
           authClient.login({
             identityProvider: process.env.II_URL,
-            onSuccess: async () => {
-              const app = document.getElementById("app")
-              app.style.display = "none";
-              const spinner = document.getElementById("loadingSpinner")
-              spinner.style.display = "block";
-              const identity = authClient.getIdentity();
-              console.log(identity);
+            onSuccess: async () => {              
+              var [res, ownerType] = await this.checkFirstLogin()
 
-              const agent = new HttpAgent({identity});
-              act = createActor(process.env.CONTROLLER_CANISTER_ID, {
-                agent,
-                canisterId: process.env.CONTROLLER_CANISTER_ID,
-              });
+              if (!res) {
+                if (ownerType === 'buyer'){
+                  routerfn.navigateTo('/feed', this.routesLandingPage)
+                  return
+                }
 
-              let result = await act.login();
-              console.log(result)
-              console.log(result.Ok)
-
-              if (result.Ok) {
                 routerfn.navigateTo('/profile', this.routesLandingPage)
-              } else if(result.Err.FirstAccess) {
+                return
+              } else  {
                 routerfn.navigateTo('/complete-profile', this.routesLandingPage)
               }
             },
@@ -98,7 +110,8 @@ export default class extends AbstractView {
 
         this.routesLandingPage = [
           { path: "/complete-profile", view: completeProfile },
-          { path: "/profile", view: profile}
+          { path: "/profile", view: profile },
+          { path: "/feed", view: feedView}
         ]
     }
 
@@ -115,8 +128,22 @@ export default class extends AbstractView {
     async loadContent(){
 
       if(await this.isAuthorized()){
-        routerfn.navigateTo("/profile", this.routesLandingPage)
-        return
+        var [res, ownerType] = await this.checkFirstLogin();
+        console.log(res)
+
+        if (!res) {
+          if (ownerType === 'buyer'){
+            routerfn.navigateTo('/feed', this.routesLandingPage)
+            return
+          }
+
+          routerfn.navigateTo('/profile', this.routesLandingPage)
+          return
+        } else  {
+          routerfn.navigateTo('/complete-profile', this.routesLandingPage)
+        }
+
+        return 
       }
 
       // navbar setting

@@ -6,6 +6,7 @@ import { AuthClient } from "@dfinity/auth-client";
 
 
 export default class {
+
     constructor(params) {
         this.params = params;
     }
@@ -51,11 +52,13 @@ export default class {
 
     hideUnauthorized(){
         let unauthorizedDiv = document.getElementById("unauthorized-div");
+        unauthorizedDiv.classList.remove('d-flex');
         unauthorizedDiv.style.display = "none";
     }
     
     viewUnauthorized(){
         const unauthorizedDiv = document.getElementById("unauthorized-div");
+        authorizedDiv.classList.remove('d-flex');
         unauthorizedDiv.style.display = "block";
     }
     
@@ -66,7 +69,7 @@ export default class {
         this.viewApp()
     }
 
-    loadUnauthorized(){
+    async loadUnauthorized(){
         this.hideApp()
         this.hideUnauthorized()
         this.viewSpinner()

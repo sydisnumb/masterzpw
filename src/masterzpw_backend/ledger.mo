@@ -56,7 +56,7 @@ actor {
     private stable var stableCompanies : [Types.UsersTypes.StableCompany] = [];
     private stable var stableBuyers : [Types.UsersTypes.StableBuyer] = [];
     private stable var stableNfts : [(Types.TokenIdentifier.TokenIdentifier, Types.Nft.Nft)] = [];
-    private stable var stableOperas : [Opera.StableOpera] = [];
+    private stable var stableOperas : [Types.Opera.StableOpera] = [];
 
 
     // '''
@@ -404,23 +404,6 @@ actor {
             case null { return #Err(#Other("Company not found!")); };
         };
 
-        // switch (buyer) {
-        //     case (?buyer) {
-        //         Debug.print("getCompany BUYER found");
-
-        //         let company = companies.get(owner);
-        //         switch (company) {
-        //             case (?company) {
-        //                 Debug.print("getCompany COMPANY FOUND");
-
-        //                 let stableCompany = company.serialize();
-        //                 return #Ok(stableCompany);
-        //             };
-        //             case null { return #Err(#Other("Company not found!")); };
-        //         };
-        //     };
-        //     case null { return #Err(#UnauthorizedOwner); };
-        // };
     };
 
     public query func getCompanies(owner : Principal, page : Nat) : async Types.GenericTypes.Result<[Types.UsersTypes.StableCompany], Types.GenericTypes.Error> {
@@ -486,23 +469,29 @@ actor {
             case null { return #Err(#Other("Company not found!")); };
         };
 
-        // switch (buyer) {
-        //     case (?buyer) {
-        //         Debug.print("getCompany BUYER found");
+    };
 
-        //         let company = companies.get(owner);
-        //         switch (company) {
-        //             case (?company) {
-        //                 Debug.print("getCompany COMPANY FOUND");
+    public func getOperasByPage(page: Nat): async Types.GenericTypes.Result<[Types.Opera.StableOpera], Types.GenericTypes.Error> {
+        let buf = Buffer.Buffer<Opera.Opera>(0);
+        var i = 0;
 
-        //                 let stableCompany = company.serialize();
-        //                 return #Ok(stableCompany);
-        //             };
-        //             case null { return #Err(#Other("Company not found!")); };
-        //         };
-        //     };
-        //     case null { return #Err(#UnauthorizedOwner(true)); };
-        // };
+        for (key in operas.keys()) {
+            if (i >= page*20 and i <= page*20 + 20) {
+                let oper = operas.get(key);
+                switch oper {
+                    case (?oper) { buf.add(oper) };
+                    case null { Debug.print("getOperasByPage No more operas "); };
+                }                         
+            };
+        };
+
+        let stableOperas = Opera.serializeOperas(buf.vals());
+        return #Ok(stableOperas);
+
+    };
+
+    public func getOperasSize(): async Nat {
+        return operas.size();
     };
 
     public func login(owner : Principal): async Types.GenericTypes.Result<Types.GenericTypes.User<Types.UsersTypes.StableBuyer, Types.UsersTypes.StableCompany>, Types.GenericTypes.Error> {

@@ -2,7 +2,7 @@ let routerfn = require('./router')
 // Import our custom CSS
 import '../scss/styles.scss'
 
-import profile from '../js/profile.js'
+import feedView from '../js/feed.js'
 
 import completeProfile from '../html/pages/complete-profile.html';
 
@@ -17,10 +17,6 @@ import AbstractView from "./abstract-view.js";
 
 export default class extends AbstractView {
 
-    isAuthorized = async () => {
-        let authClient = await AuthClient.create();
-        return await authClient.isAuthenticated();
-    }
 
     init = async () => {
 
@@ -85,7 +81,7 @@ export default class extends AbstractView {
 
                 if (callFlag && res) {
                     if (res.Ok) {
-                        routerfn.navigateTo('/profile', this.routesCompleteProfile);
+                        routerfn.navigateTo('/feed', this.routesCompleteProfile);
                     } else {
                         message = res.Err.Other
                         alert(message)
@@ -95,9 +91,8 @@ export default class extends AbstractView {
                 submit.innerHTML = 'Submit'
                 submit.disabled = false
             } else {
-                this.loadUnauthorized()
+               await this.loadUnauthorized()
             }
-
             
         }
     }
@@ -107,7 +102,7 @@ export default class extends AbstractView {
         this.setTitle("Complete profile - COOL art");
 
         this.routesCompleteProfile = [
-            { path: "/profile", view: profile },
+            { path: "/feed", view: feedView },
         ]
 
     }

@@ -8,14 +8,7 @@ import Types "../types";
 
 
 module Opera {
-    public type StableOpera = {
-        id: Nat64;
-        name : Text;
-        description: Text;
-        pictureUri : Text;
-        price: Float;
-        nfts : [Types.TokenIdentifier.TokenIdentifier];
-    };
+   
 
     public class Opera(identifier : Nat64, operaName : Text, opDescription: Text, picUri : Text, opPrice: Float, mintedNfts : [Types.TokenIdentifier.TokenIdentifier]) {
         private var id = identifier;
@@ -66,8 +59,8 @@ module Opera {
             return false;
         };
 
-        public func serialize() : StableOpera {
-            let op : StableOpera = {
+        public func serialize() : Types.Opera.StableOpera {
+            let op : Types.Opera.StableOpera = {
                 id = id;
                 name = name;
                 description = description;
@@ -78,8 +71,8 @@ module Opera {
         };
     };
 
-    public func serializeOperas(operas : Iter.Iter<Opera>) : [StableOpera] {
-        let buf = Buffer.Buffer<StableOpera>(0);
+    public func serializeOperas(operas : Iter.Iter<Opera>) : [Types.Opera.StableOpera] {
+        let buf = Buffer.Buffer<Types.Opera.StableOpera>(0);
 
         for (opera in operas) {
             buf.add(opera.serialize());
@@ -88,11 +81,11 @@ module Opera {
         Buffer.toArray(buf);
     };
 
-    public func deserialize(stableOpera: StableOpera) : Opera {
+    public func deserialize(stableOpera: Types.Opera.StableOpera) : Opera {
         Opera(stableOpera.id, stableOpera.name, stableOpera.description, stableOpera.pictureUri, stableOpera.price, stableOpera.nfts);
     };
 
-    public func deserializeOperas(stableOperas: Iter.Iter<StableOpera>) : [Opera] {
+    public func deserializeOperas(stableOperas: Iter.Iter<Types.Opera.StableOpera>) : [Opera] {
         let buf = Buffer.Buffer<Opera>(0);
 
         for (opera in stableOperas) {
@@ -102,7 +95,7 @@ module Opera {
         Buffer.toArray(buf);
     };
 
-    public func deserializeOperasToMap(stableOperas: [StableOpera]) : HashMap.HashMap<Nat64, Opera> {
+    public func deserializeOperasToMap(stableOperas: [Types.Opera.StableOpera]) : HashMap.HashMap<Nat64, Opera> {
         let operaTmp : [(Nat64, Opera)] = Array.tabulate<(Nat64, Opera)>(stableOperas.size(), func (i) { (stableOperas[i].id, deserialize(stableOperas[i])); });
         let operas = HashMap.fromIter<Nat64, Opera>(operaTmp.vals(), operaTmp.size(), Types.GenericTypes.equal, Types.GenericTypes.hash);
     };

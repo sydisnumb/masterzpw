@@ -4,16 +4,19 @@ let routerfn = require("./router.js")
 import profileView from '../js/profile.js';
 import landingPageView from '../js/landing-page.js';
 import feedView from '../js/feed.js'
+import createOperaView from '../js/create-opera.js'
+
 
 import profile from '../html/pages/profile.html';
 import navbar from '../html/components/navbar-1.html'
 import footer from '../html/components/footer-1.html'
+import newOperaBtnCmp from '../html/components/new-opera-btn.html'
+import operaTabs from '../html/components/opera-tabs.html'
 
 import defaulUserPic from '../image/user.png'
 import userIcon from '../image/user-icon.png'
 import logo from '../image/logo.png';
 import icponchainImg from '../image/icp-onchain.png';
-
 
 
 import { createActor, controller } from "../../../declarations/controller";
@@ -23,11 +26,6 @@ import { AuthClient } from "@dfinity/auth-client";
 import AbstractView from "./abstract-view.js";
 
 export default class extends AbstractView {
-
-    isAuthorized = async () => {
-        let authClient = await AuthClient.create();
-        return await authClient.isAuthenticated();
-    }
 
     getUser = async () => {
         let authClient = await AuthClient.create();
@@ -63,10 +61,10 @@ export default class extends AbstractView {
         return [user, ownerType, true]
     }
 
-    getOpera = async (page) => {
+    getOperas = async (page) => {
 
         if(await this.isAuthorized()){
-            this.loadUnauthorized()
+            await this.loadUnauthorized()
             return
         }
 
@@ -102,13 +100,9 @@ export default class extends AbstractView {
 
         let authClient = await AuthClient.create();
 
-        const feed = document.getElementById("feed-a");
         const viewProfile = document.getElementById("profile-a");
         const logout = document.getElementById("logout-a");
 
-        feed.onclick = async () => {
-            routerfn.navigateTo("/feed", this.routesProfile)
-        }
 
         viewProfile.onclick = async () => {
             routerfn.navigateTo("/profile", this.routesProfile)
@@ -128,6 +122,7 @@ export default class extends AbstractView {
         this.routesProfile = [
             { path: "/profile", view: profileView },
             { path: "/landing-page", view: landingPageView },
+            { path: "/create-opera", view: createOperaView },
             { path: "/feed", view: feedView }
         ]
     }
@@ -143,72 +138,164 @@ export default class extends AbstractView {
 
     async loadContent() {
         
-        if(await this.isAuthorized()){
-            var [user, ownerType, flag] = await this.getUser()
+        if(! await this.isAuthorized()){
+            await this.loadUnauthorized()
+            return
+        }
+        var [user, ownerType, flag] = await this.getUser()
 
-            console.log(user, ownerType, flag)
+        console.log(user, ownerType, flag)
 
-            if(!flag) {
-                this.loadUnauthorized()
-                return
-            }
+        if(!flag) {
+            await this.loadUnauthorized()
+            return
+        }
 
-            const navbarDiv = document.getElementById("navbar-div");
-            navbarDiv.innerHTML = navbar;
-
-            const togglerIcon = document.getElementById("toggler-icon");
-            togglerIcon.src = userIcon;
-
-            const logoFeed = document.getElementById("feed-a");
-            logoFeed.src = logo;
-
-            const profilePic = document.getElementById("profile-pic");
-            utils.checkImageSourceExists(user.profilePictureUri, function(exists) {
-                profilePic.src = (exists) ? user.profilePictureUri : defaulUserPic
-            })
-
-            const username = document.getElementById("username");
-            username.textContent = user.username;
-
-            const principal = document.getElementById("principal");
-            principal.textContent = user.principal;
-
-            const operaCount = document.getElementById("opera-count");
-            operaCount.textContent = user.ownNfts.length;
-
-            const nftsCount = document.getElementById("nfts-count");
-            nftsCount.textContent = user.ownNfts.length;
-
-            const usernameDesc = document.getElementById("username-span");
-            usernameDesc.textContent = user.username;
-            
-            const footerDiv = document.getElementById("footer-div");
-            footerDiv.innerHTML = footer;
-
-            const icponchain = document.getElementById("icp-onchain");
-            icponchain.src = icponchainImg;
-
-            var [operas, flag] = await getOperas(0)
-
-            if(!flag) {
-                // scrivi qualcosa
-            } else {
-                const galleryDiv = document.getElementById("gallery-div");
-                
-                this.loadGallery()
-               
-                galleryDiv
-            }
-
-            super.loadContent()
+        if(ownerType === "buyer"){
+            await this.loadBuyerPage(user);
         } else {
-            this.loadUnauthorized()
+            await this.loadCompanyPage(user);
+        }
+
+
+        super.loadContent()
+    }
+
+    async loadBuyerPage(){
+        this.loadNavbar(company)
+        this.loadFooter()
+
+        const soldnftsDiv = document.getElementById("soldnfts-div");
+        soldnftsDiv.style.display = "none";
+      
+        const profilePic = document.getElementById("profile-pic");
+        utils.checkImageSourceExists(user.profilePictureUri, function(exists) {
+            profilePic.src = (exists) ? user.profilePictureUri : defaulUserPic
+        })
+
+        const username = document.getElementById("username");
+        username.textContent = user.username;
+
+        const principal = document.getElementById("principal");
+        principal.textContent = user.principal;
+
+        const operaCount = document.getElementById("opera-count");
+        operaCount.textContent = user.ownNfts.length;
+
+        const nftsCount = document.getElementById("nfts-count");
+        nftsCount.textContent = user.ownNfts.length;
+
+        const usernameDesc = document.getElementById("username-span");
+        usernameDesc.textContent = user.username;
+        
+       
+
+        var [operas, flag] = await getOperas(0)
+
+        if(!flag) {
+            // scrivi qualcosa
+        } else {
+            const galleryDiv = document.getElementById("gallery-div");
+            
+            this.loadGallery()
+            
+            galleryDiv
         }
     }
 
-    loadGallery () {
-        for (var opera in operas) {
+    async loadCompanyPage(company){
+        this.loadNavbar()
+        this.loadCommonUserInfo(company)
 
+        const soldnftsCount = document.getElementById("soldnfts-count");
+        soldnftsCount.textContent = company.soldNfts.length;
+
+        if(document.getElementById("newopera-btn") == undefined){
+            const userDiv = document.getElementById("user-div");
+            const buttonRow = document.createElement('div')
+            buttonRow.classList.add("row")
+            buttonRow.classList.add("px-2")
+            buttonRow.classList.add("mt-2")
+            buttonRow.innerHTML = newOperaBtnCmp;
+            userDiv.appendChild(buttonRow)
         }
+
+        const newOperaBtn = document.getElementById("newopera-btn");
+        newOperaBtn.onclick = async () => {
+            routerfn.navigateTo("/create-opera", this.routesProfile)
+        };
+
+        const galleryDiv = document.getElementById("gallery-div");
+        galleryDiv.innerHTML = operaTabs;
+
+        //this.loadGallery(company, getOperas)
+
+        const operaTab = document.getElementById("opera-tab");
+        const soldTab = document.getElementById("sold-tab");
+
+
+        operaTab.onclick = async () => {
+            const galleryDiv = document.getElementById("gallery-div");
+            galleryDiv.innerHTML = operaTabs;
+           // this.loadGallery(company, getOperas)
+        };
+
+        soldTab.onclick = async () => {
+            const galleryDiv = document.getElementById("gallery-div");
+            galleryDiv.innerHTML = operaTabs;
+            //this.loadGallery(company, getSoldOperas)
+        };
+
+        this.loadFooter()
+
+    }
+
+    loadNavbar(){
+        const navbarDiv = document.getElementById("navbar-div");
+        navbarDiv.innerHTML = navbar;
+
+        const togglerIcon = document.getElementById("toggler-icon");
+        togglerIcon.src = userIcon;
+
+        const logoFeed = document.getElementById("feed-a");
+        logoFeed.src = logo;
+
+        const feed = document.getElementById("feed-a");
+        feed.onclick = async () => {
+            routerfn.navigateTo("/feed", this.routesProfile)
+        }
+    }
+
+    loadFooter(){
+        const footerDiv = document.getElementById("footer-div");
+        footerDiv.innerHTML = footer;
+
+        const icponchain = document.getElementById("icp-onchain");
+        icponchain.src = icponchainImg;
+    }
+
+    loadCommonUserInfo(user){
+
+        const profilePic = document.getElementById("profile-pic");
+        utils.checkImageSourceExists(user.profilePictureUri, function(exists) {
+            profilePic.src = (exists) ? user.profilePictureUri : defaulUserPic
+        })
+
+        const username = document.getElementById("username");
+        username.textContent = user.username;
+
+        const principal = document.getElementById("principal");
+        principal.textContent = user.principal;
+
+        const operaCount = document.getElementById("opera-count");
+        operaCount.textContent = user.ownNfts.length;
+
+        const nftsCount = document.getElementById("nfts-count");
+        nftsCount.textContent = user.ownNfts.length;
+
+    }
+
+    loadGallery () {
+        
     }
 }

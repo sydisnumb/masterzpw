@@ -207,3 +207,15 @@ module TokenIdentifier {
   
 };
 
+
+module Opera {
+   public type StableOpera = {
+        id: Nat64;
+        name : Text;
+        description: Text;
+        pictureUri : Text;
+        price: Float;
+        nfts : [TokenIdentifier.TokenIdentifier];
+    };
+}
+
