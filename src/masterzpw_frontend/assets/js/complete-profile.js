@@ -1,4 +1,5 @@
 let routerfn = require('./router')
+let utils = require('./utils')
 // Import our custom CSS
 import '../scss/styles.scss'
 
@@ -75,23 +76,36 @@ export default class extends AbstractView {
             var callFlag = true;
             if(username === "") {
                 alert("Fill the Username field.")
-                callFlag = false;
+
+                submit.innerHTML = 'Submit'
+                submit.disabled = false      
+                return
             } else if (checkbox.checked &&  merchantId === "") {
                 alert("Fill the Merchant ID field.");
-                callFlag = false;
+                
+                submit.innerHTML = 'Submit'
+                submit.disabled = false      
+                return
             }
             
             var res;
-            if (callFlag && !checkbox.checked){
+            var isBuyer;
+            if (!checkbox.checked){
                 res = await act.createBuyer(username, profilePicUrl);
-            } else if(callFlag && checkbox.checked) {
+                isBuyer = true
+            } else if(checkbox.checked) {
                 res = await act.createCompany(username, profilePicUrl, merchantId);
+                isBuyer = false
             }
 
 
             if (callFlag && res) {
                 if (res.Ok) {
-                    routerfn.navigateTo('/feed', this.routesCompleteProfile);
+                    if(isBuyer){
+                        routerfn.navigateTo('/feed', this.routesCompleteProfile);
+                    } else {
+                        routerfn.navigateTo('/profile', this.routesCompleteProfile);
+                    }
                 } else {
                     message = res.Err.Other
                     alert(message)
@@ -128,7 +142,7 @@ export default class extends AbstractView {
         if(isAuthorizedFlag){
             let contentDiv = document.getElementById("content-div");
             contentDiv.style.backgroundRepeat = "repeat";
-            contentDiv.style.backgroundImage = `url('${logoImg}')`;
+            //contentDiv.style.backgroundImage = process.env.MASTERZPW_FRONTEND_CANISTER_ID + '/' + logoImg;
             contentDiv.style.backgroundSize = "100px";
     
             let completForm = document.getElementById("complete-form");

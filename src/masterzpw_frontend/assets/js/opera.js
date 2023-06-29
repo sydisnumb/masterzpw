@@ -139,12 +139,12 @@ export default class extends AbstractView {
 
 
         viewProfile.onclick = async () => {
-            routerfn.navigateTo("/profile", this.routesProfile)
+            routerfn.navigateTo("/profile", this.routesOpera)
         }
 
         logout.onclick = async () => {
             authClient.logout()
-            routerfn.navigateTo("/landing-page", this.routesProfile)
+            routerfn.navigateTo("/landing-page", this.routesOpera)
         }
     }
 

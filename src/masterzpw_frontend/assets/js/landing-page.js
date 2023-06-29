@@ -92,6 +92,7 @@ export default class extends AbstractView {
                 routerfn.navigateTo('/profile', this.routesLandingPage)
                 return
               } else  {
+                console.log("eccolo")
                 routerfn.navigateTo('/complete-profile', this.routesLandingPage)
               }
             },
@@ -100,6 +101,11 @@ export default class extends AbstractView {
             }          
         });
       };
+
+      window.addEventListener("hashchange", function (){
+        var contentDiv = document.getElementById("app");
+        contentDiv.innerHTML = this.loadPage()
+      });
      
     }
 
@@ -145,19 +151,8 @@ export default class extends AbstractView {
         return 
       }
 
-      // navbar setting
-      const navbarDiv = document.getElementById("navbar-home");
-      navbarDiv.innerHTML += navbar;
-      const navbarLogo = document.getElementById("navbar-logo");
-      navbarLogo.src = logo;
-      const signupHref = document.getElementById('signup-btn');
-      signupHref.href = process.env.II_URL;
-
-      // footer setting
-      const footerDiv = document.getElementById("footer");
-      footerDiv.innerHTML += footer
-      const icponchain = document.getElementById("icp-onchain");
-      icponchain.src = icponchainImg;
+      await this.loadNavbar()
+      await this.loadFooter()
 
 
       // landing setting
@@ -168,6 +163,14 @@ export default class extends AbstractView {
       const logoLandingDiv = document.getElementById("logo-landing");
       logoLandingDiv.src = logo;
 
+
+      const getStartedBtn = document.getElementById("getstarted-btn")
+      getStartedBtn.onclick = async (event) => {
+        event.preventDefault();
+        const getstartedDiv = document.getElementById('get-started');
+        getstartedDiv.scrollIntoView({ behavior: 'smooth' });
+       }
+
       // mission setting
       const missionDiv = document.getElementById("mission");
       missionDiv.innerHTML += features;
@@ -176,12 +179,51 @@ export default class extends AbstractView {
       const getstartedDiv = document.getElementById("get-started");
       getstartedDiv.innerHTML += getstarted;
       // about us setting
-      const aboutusDiv = document.getElementById("aboutus");
+      const aboutusDiv = document.getElementById("about-us");
       aboutusDiv.innerHTML += aboutus;
 
       super.loadContent()
     }
 
+    async loadNavbar() {
+       // navbar setting
+       const navbarDiv = document.getElementById("navbar-home");
+       navbarDiv.innerHTML = navbar;
+       const navbarLogo = document.getElementById("navbar-logo");
+       navbarLogo.src = logo;
+       const signupHref = document.getElementById('signup-btn');
+       signupHref.href = process.env.II_URL;
+
+       const missionLink = document.getElementById("inshort-a")
+       missionLink.onclick = async (event) => {
+        event.preventDefault();
+        const missionDiv = document.getElementById('mission');
+        missionDiv.scrollIntoView({ behavior: 'smooth' });
+       }
+
+       const getStartedink = document.getElementById("getstarted-a")
+       getStartedink.onclick = async (event) => {
+        event.preventDefault();
+        const getstartedDiv = document.getElementById('get-started');
+        getstartedDiv.scrollIntoView({ behavior: 'smooth' });
+       }
+
+       const aboutusLink = document.getElementById("aboutus-a")
+       aboutusLink.onclick = async (event) => {
+        event.preventDefault();
+        const aboutusDiv = document.getElementById('about-us');
+        aboutusDiv.scrollIntoView({ behavior: 'smooth' });
+       }
+    }
+
+    async loadFooter() {
+       // footer setting
+       const footerDiv = document.getElementById("footer");
+       footerDiv.innerHTML += footer
+       const icponchain = document.getElementById("icp-onchain");
+       icponchain.src = icponchainImg;
+ 
+    }
 
     
 }

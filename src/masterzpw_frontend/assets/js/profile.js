@@ -165,17 +165,14 @@ export default class extends AbstractView {
         
        
 
-        var [operas, flag] = await getOperas(0)
+        //var [operas, flag] = await getOperas(0)
 
-        if(!flag) {
-            // scrivi qualcosa
-        } else {
-            const galleryDiv = document.getElementById("gallery-div");
-            
-            this.loadGallery()
-            
-            galleryDiv
-        }
+        // if(!flag) {
+        //     // scrivi qualcosa
+        // } else {
+        //     const galleryDiv = document.getElementById("gallery-div");
+        //     this.loadGallery()
+        // }
     }
 
     async loadCompanyPage(company){
@@ -202,8 +199,9 @@ export default class extends AbstractView {
 
         const tabsDiv = document.getElementById("tabs-div");
         tabsDiv.innerHTML = operaTabs;
-
-        this.loadGallery(company, getOwnOperas)
+        
+        this.page = 0
+        this.loadMoreOperas(company, this.getOwnOperas)
 
         const operaTab = document.getElementById("opera-tab");
         const soldTab = document.getElementById("sold-tab");
@@ -218,7 +216,7 @@ export default class extends AbstractView {
         //         soldBtn.classList.remove("active")
 
         //         this.opera = 0
-        //         this.loadGallery(company, getOwnOperas)
+        //         this.loadGallery(company, this.getOwnOperas)
         //     }
         
         // };
@@ -243,6 +241,7 @@ export default class extends AbstractView {
     async loadMoreOperas (user, getOperaFunction) {
         this.isLoading = true
         var [operas, flag] = await getOperaFunction(this.page)
+        console.log(operas, flag)
 
         if(flag) {
             const galleryDiv = document.getElementById("gallery-div");
@@ -256,7 +255,7 @@ export default class extends AbstractView {
                 if (i % 3 == 0) {
                     // carichi riga
                     operasRowDiv = document.createElement('div');
-                    operasRowDiv.innerHTML = operasRow
+                    operasRowDiv.innerHTML = operasRowDiv
                     operasRowDiv.classList.add('row g-2');
 
                     // Access the desired element within the container
@@ -282,6 +281,7 @@ export default class extends AbstractView {
             }
 
             let anchors = newOperas.getElementsByTagName('a')
+            console.log(anchors)
             for (var anch in anchors) {
                 anch.addEventListener('click', () => {
                     var operaId = this.getAttribute('id');

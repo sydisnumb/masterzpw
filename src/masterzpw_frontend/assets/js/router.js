@@ -1,10 +1,3 @@
-// import Posts from "./assets/js/posts.js";
-// import PostView from "./assets/js/post-view.js";
-// import Settings from "./assets/js/settings.js";
-
-
-
-
 const pathToRegex = path => new RegExp("^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)") + "$");
 
 const getParams = match => {

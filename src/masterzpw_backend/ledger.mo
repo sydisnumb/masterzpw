@@ -463,6 +463,8 @@ actor {
                             case (_) { Debug.print("propertires wrong"); };
                         };
                     };
+
+                    i += 1;
                 };
 
                 let stableOperas = Opera.serializeOperas(buf.vals());
@@ -473,6 +475,49 @@ actor {
         };
 
     };
+
+
+    public func getSoldOperasByCompany(owner : Principal, page: Nat): async Types.GenericTypes.Result<[Types.Opera.StableOpera], Types.GenericTypes.Error> {
+        Debug.print("getOwnOperasByPage START"); 
+
+        let user = _getCompany(owner);
+
+        switch (user) {
+            case (#Ok(user)) {
+                let soldNfts = user.soldNfts;
+
+                let buf = Buffer.Buffer<Opera.Opera>(0);
+                var i = 0;
+
+                for (nft in soldNfts.vals()) {
+                    if (i >= page*20 and i <= page*20 + 20) {
+                        let operaVec = nft.1.metadata.properties[0].value;
+
+                        switch (operaVec) {
+                            case (#Nat64Content(operaId)) { 
+                                let opera = operas.get(operaId);
+                                switch opera {
+                                    case (?opera) { buf.add(opera) };
+                                    case null { Debug.print("getOperasByPage No more operas "); };
+                                }                         
+                                };
+                            case (_) { Debug.print("propertires wrong"); };
+                        };
+                    };
+
+                    i += 1;
+                };
+
+                let stableOperas = Opera.serializeOperas(buf.vals());
+                return #Ok(stableOperas);
+                        
+            };
+            case (#Err(_)) { return #Err(#UnauthorizedOwner(true)) };
+        };
+
+    };
+
+
 
     public func getOwnOperasByBuyer(owner : Principal, page: Nat): async Types.GenericTypes.Result<[Types.Opera.StableOpera], Types.GenericTypes.Error> {
         Debug.print("getOwnOperasByBuyer START"); 
@@ -501,6 +546,8 @@ actor {
                             case (_) { Debug.print("propertires wrong"); };
                         };
                     };
+
+                    i += 1;
                 };
 
                 let stableOperas = Opera.serializeOperas(buf.vals());
@@ -540,29 +587,6 @@ actor {
         };
 
     };
-
-    // public query func getBuyers(owner : Principal) : async Types.GenericTypes.Result<Buyer.StableBuyer, Types.GenericTypes.Error> {
-    //     Debug.print("getBuyers START");
-    //     let company = companies.get(owner);
-
-    //     switch (company) {
-    //         case (?company) {
-    //             Debug.print("getCompany BUYER found");
-
-    //             let company = companies.get(owner);
-    //             switch (company) {
-    //                 case (?company) {
-    //                     Debug.print("getCompany COMPANY FOUND");
-
-    //                     let stableCompany = company.serialize();
-    //                     return #Ok(stableCompany);
-    //                 };
-    //                 case null { return #Err(#Other("Company not found!")); };
-    //             };
-    //         };
-    //         case null { return #Err(#UnauthorizedOwner); };
-    //     };
-    // };
 
 
     private func _mint(owner : Principal, properties: Types.GenericTypes.Vec) : Types.GenericTypes.Result<Types.TokenIdentifier.TokenIdentifier, Types.GenericTypes.Error> {
@@ -617,69 +641,7 @@ actor {
         };
     };
 
-    // private func _transferTo(to: Principal, tokenId: Types.TokenIdentifier.TokenIdentifier) : Types.GenericTypes.Result<Types.GenericTypes.TxIdentifier, Types.GenericTypes.Error> {
-    //     let res = _ownerOf(tokenId);
-
-    //     let ownerPri =
-    //         switch res {
-    //             case (#Ok(ownerRet)) ownerRet;
-    //             case (#Err(#OwnerNotFound)) { return #Err(#OwnerNotFound); };
-    //             case (#Err(_)) { return #Err(#Other("Something went wrong"))};
-    //         };
-
-
-    //     if (ownerPri == null_address) {
-    //         return #Err(#SelfTransfer);
-    //     };
-
-    //     let token = nfts.get(tokenId);
-    //     let newToken : Types.Nft.Nft =
-    //         switch (token) {
-    //             case null { return #Err(#TokenNotFound)};
-    //             case (?token) { {
-    //                 tokenId = tokenId;
-    //                 owner = to;
-    //                 metadata = {
-    //                     transferredAt = ?Time.now();
-    //                     transferredBy = null;
-    //                     owner = to;
-    //                     operator = null;
-    //                     properties = token.metadata.properties;
-    //                     isBurned = false;
-    //                     tokenIdentifier = tokenId;
-    //                     burnedAt = token.metadata.burnedAt;
-    //                     burnedBy = token.metadata.burnedBy;
-    //                     approvedAt = token.metadata.approvedAt;
-    //                     approvedBy = token.metadata.burnedBy;
-    //                     mintedAt = token.metadata.mintedAt;
-    //                     mintedBy = token.metadata.mintedBy;
-    //                 };
-    //             }
-    //             };
-    //         };
-
-    //     ignore nfts.replace(tokenId, newToken);
-    //     let company = companies.get(from);
-    //     switch (company) {
-    //         case null { return #Err(#TokenNotFound); };
-    //         case (?company) {
-    //             company.deletNftFromOwnById(tokenId);
-    //             company.addNftToOwn(newToken);
-    //         };
-    //     };
-
-
-    //     let buyer = buyers.get(to);
-    //     switch (buyer) {
-    //         case null { return #Err(#OwnerNotFound)};
-    //         case (?buyer) { buyer.addNftToOwn(newToken); };
-    //     };
-
-
-    //     return #Ok()
-    // };
-
-
+   
     // '''
     // Metodi di utility
     // '''
