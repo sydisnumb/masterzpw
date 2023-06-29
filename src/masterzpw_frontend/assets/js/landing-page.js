@@ -51,7 +51,7 @@ export default class extends AbstractView {
         
         return [false, "company"];
       } else if(result.Err.FirstAccess) {
-        return true;
+        return [true, null];
       }
     }
 
@@ -70,7 +70,6 @@ export default class extends AbstractView {
               identityProvider: process.env.II_URL,
               onSuccess: () => {
                 alert("Your Internet Identity is successfully registrated! Welcome to COOL ART.");
-                
               },
               onError: () => {
                 alert("Something went wrong! Try again.");

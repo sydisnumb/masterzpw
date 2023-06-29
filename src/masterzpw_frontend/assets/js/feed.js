@@ -108,7 +108,7 @@ export default class extends AbstractView {
 
         logout.onclick = async () => {
             authClient.logout()
-            alert("Log out avvenuto con successo!")
+            alert("Log out successfull.")
             routerfn.navigateTo("/landing-page", this.routesFeed)
         }
     }
@@ -234,6 +234,9 @@ export default class extends AbstractView {
 
         const par = document.getElementById("no-content-p");
         par.textContent = "No operas available at the moment!";
+
+        const par1 = document.getElementById("no-content-p1");
+        par1.textContent = "Visit your profile";
 
         const nocontentImg = document.getElementById("no-content-img");
         nocontentImg.src = nocontentIcon

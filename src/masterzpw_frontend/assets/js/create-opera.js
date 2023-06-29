@@ -1,4 +1,5 @@
 let routerfn = require('./router')
+let utils = require('./utils')
 // Import our custom CSS
 import '../scss/styles.scss'
 
@@ -32,7 +33,7 @@ export default class extends AbstractView {
         cancel.onclick = async () => {
             let res = confirm('Do you want to proceed?');
             if(res) {
-                navigateTo("/profile", this.routesCreateOpera)
+                routerfn.navigateTo("/profile", this.routesCreateOpera)
             }
         };
     
@@ -59,19 +60,21 @@ export default class extends AbstractView {
             let operaDescription = document.getElementById("description-field").value;
             let operaPrice = document.getElementById("price-field").value;
 
+            var isImage =  await  utils.checkImageSourceExists(operaUrl)
+
             if(operaTitle === "" || operaUrl === "" || operaDescription === "" || operaPrice === "") {
                 alert("Make sure each field is complete.")
-                return
+            } else if(!isImage){
+                alert("Insert a valid IPFS url image.")
             } else {
                 if(isNaN(parseFloat(operaPrice))){
                     alert("Insert a return price.")
-                    submit.innerHTML = 'Submit'
+                    submit.innerHTML = 'Create new opera'
                     submit.disabled = false
-
                     return                    
                 }
             
-                var res = await act.createNewOpera(operaTitle, operaUrl, operaDescription, parseFloat(operaPrice));
+                var res = await act.createNewOpera(operaTitle, operaDescription, operaUrl,  parseFloat(operaPrice));
 
                 if(res.Ok){
                     let operaId = res.Ok
@@ -84,11 +87,8 @@ export default class extends AbstractView {
                 }
             }
             
-            
-            submit.innerHTML = 'Submit'
+            submit.innerHTML = 'Create new opera'
             submit.disabled = false
-
-            
         }
     }
 
@@ -100,7 +100,6 @@ export default class extends AbstractView {
             { path: "/profile", view: profile },
             { path: "/opera/:id", view: opera },
         ]
-
     }
 
     async getHtml() {

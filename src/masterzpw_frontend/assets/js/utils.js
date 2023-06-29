@@ -1,16 +1,18 @@
-function checkImageSourceExists(source, callback) {
+function checkImageSourceExists(source) {
+  return new Promise(function(resolve, reject) {
     var img = new Image();
     
     img.onload = function() {
-      callback(true);
+      resolve(true);
     };
     
     img.onerror = function() {
-      callback(false);
+      resolve(false)
     };
     
     img.src = source;
-  }
+  });
+}
 
 
 

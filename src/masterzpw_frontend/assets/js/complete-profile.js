@@ -46,54 +46,60 @@ export default class extends AbstractView {
             submit.disabled = true
             submit.innerHTML = spinner + submit.innerHTML
 
-            let isAuthFlag = await this.isAuthorized()
-
-            if(isAuthFlag) {
-                let authClient = await AuthClient.create();
-                const identity = authClient.getIdentity();
-                const agent = new HttpAgent({identity});
-                let act = controller;
-                act = createActor(process.env.CONTROLLER_CANISTER_ID, {
-                    agent,
-                    canisterId: process.env.CONTROLLER_CANISTER_ID,
-                });
-
-                let username = document.getElementById("username-field").value;
-                let profilePicUrl = (document.getElementById("profilepic-field").value !== "") ? "https://ipfs.io/ipfs/" + document.getElementById("profilepic-field").value : "";
-                let merchantId = document.getElementById("merchantid-field").value;
-
-                var callFlag = true;
-                if(username === "") {
-                    alert("Fill the Username field.")
-                    callFlag = false;
-                } else if (checkbox.checked &&  merchantId === "") {
-                    alert("Fill the Merchant ID field.");
-                    callFlag = false;
-                }
-                
-                var res;
-                if (callFlag && !checkbox.checked){
-                    res = await act.createBuyer(username, profilePicUrl);
-                } else if(callFlag && checkbox.checked) {
-                    res = await act.createCompany(username, profilePicUrl, merchantId);
-                }
-
-
-                if (callFlag && res) {
-                    if (res.Ok) {
-                        routerfn.navigateTo('/feed', this.routesCompleteProfile);
-                    } else {
-                        message = res.Err.Other
-                        alert(message)
-                    }
-                } 
-                
-                submit.innerHTML = 'Submit'
-                submit.disabled = false
-            } else {
-               await this.loadUnauthorized()
+            if(! await this.isAuthorized()) {
+                await this.loadUnauthorized()
             }
             
+            let authClient = await AuthClient.create();
+            const identity = authClient.getIdentity();
+            const agent = new HttpAgent({identity});
+            let act = controller;
+            act = createActor(process.env.CONTROLLER_CANISTER_ID, {
+                agent,
+                canisterId: process.env.CONTROLLER_CANISTER_ID,
+            });
+
+            let username = document.getElementById("username-field").value;
+            let profilePicUrl = "https://ipfs.io/ipfs/" + document.getElementById("profilepic-field").value;
+            let merchantId = document.getElementById("merchantid-field").value;
+
+            let isImage = await utils.checkImageSourceExists(profilePicUrl);
+
+            if(!isImage) {
+                alert("Insert a valid IPFS url image.")
+                submit.innerHTML = 'Submit'
+                submit.disabled = false
+                return
+            }
+
+            var callFlag = true;
+            if(username === "") {
+                alert("Fill the Username field.")
+                callFlag = false;
+            } else if (checkbox.checked &&  merchantId === "") {
+                alert("Fill the Merchant ID field.");
+                callFlag = false;
+            }
+            
+            var res;
+            if (callFlag && !checkbox.checked){
+                res = await act.createBuyer(username, profilePicUrl);
+            } else if(callFlag && checkbox.checked) {
+                res = await act.createCompany(username, profilePicUrl, merchantId);
+            }
+
+
+            if (callFlag && res) {
+                if (res.Ok) {
+                    routerfn.navigateTo('/feed', this.routesCompleteProfile);
+                } else {
+                    message = res.Err.Other
+                    alert(message)
+                }
+            } 
+            
+            submit.innerHTML = 'Submit'
+            submit.disabled = false            
         }
     }
 

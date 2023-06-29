@@ -7,6 +7,7 @@ import Types "./model/types";
 import Nat64 "mo:base/Nat64";
 import Ledger "canister:ledger";
 import Bool "mo:base/Bool";
+import Nat "mo:base/Nat";
 
 actor {
 
@@ -30,9 +31,9 @@ actor {
         await Ledger.createNewOpera(caller, operaName, operaDescription, operaPicUri, operaPrice, 1);
     };
 
-    // public shared ({caller}) func getOpera(operaId : Text) : async Types.GenericTypes.Result<Nat64, Types.GenericTypes.Error> {
-    //     await Ledger.getOpera(operaId);
-    // };
+    public shared ({caller}) func getOpera(operaId : Nat64) : async Types.GenericTypes.Result<Types.Opera.StableOpera, Types.GenericTypes.Error> {
+        await Ledger.getOpera(operaId);
+    };
 
     public shared ({caller}) func getOperas(page : Nat) : async Types.GenericTypes.Result<[Types.Opera.StableOpera], Types.GenericTypes.Error> {
         await Ledger.getOperasByPage(page);
@@ -43,6 +44,14 @@ actor {
         return res > 0;
     };
 
+
+    public shared ({caller}) func getOwnOperas(ownerType: Text, page : Nat): async Types.GenericTypes.Result<[Types.Opera.StableOpera], Types.GenericTypes.Error>  {
+        if(ownerType=="company") {
+            await Ledger.getOwnOperasByCompany(caller, page);
+        } else {
+            await Ledger.getOwnOperasByBuyer(caller, page);
+        }
+    };
 
 
     public shared ({caller}) func getBuyer() : async Types.GenericTypes.Result<Types.UsersTypes.StableBuyer, Types.GenericTypes.Error> {
@@ -62,17 +71,5 @@ actor {
             case (#Err(_)) { return #Err(#SomethingWentWrong(true)); };
         }
     };
-
-
-    public shared ({caller}) func getCompanies(page : Nat) : async Types.GenericTypes.Result<[Types.UsersTypes.StableCompany], Types.GenericTypes.Error> {
-        let res = await Ledger.getCompanies(caller, page);
-
-        switch res {
-            case (#Ok(stableComps)) { return #Ok(stableComps); };
-            case (#Err(_)) { return #Err(#SomethingWentWrong(true)); };
-        }
-    };
-
-    
 
 }

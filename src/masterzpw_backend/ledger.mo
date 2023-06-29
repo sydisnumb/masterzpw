@@ -391,84 +391,11 @@ actor {
     };
 
     public query func getCompany(owner : Principal) : async Types.GenericTypes.Result<Types.UsersTypes.StableCompany, Types.GenericTypes.Error> {
-        Debug.print("getCompany START");
-
-        let company = companies.get(owner);
-        switch (company) {
-            case (?company) {
-                Debug.print("getCompany COMPANY FOUND");
-
-                let stableCompany = company.serialize();
-                return #Ok(stableCompany);
-            };
-            case null { return #Err(#Other("Company not found!")); };
-        };
-
-    };
-
-    public query func getCompanies(owner : Principal, page : Nat) : async Types.GenericTypes.Result<[Types.UsersTypes.StableCompany], Types.GenericTypes.Error> {
-        Debug.print("getCompany START");
-        let buyer = buyers.get(owner);
-
-        switch (buyer) {
-            case (?buyer) {
-                Debug.print("getCompany BUYER found");
-
-                let buf = Buffer.Buffer<Company.Company>(0);
-                var i = 0;
-
-                for (key in companies.keys()) {
-                    if (i >= page*20 and i <= page*20 + 20) {
-                        let comp = companies.get(key);
-                        switch comp {
-                            case (?comp) { buf.add(comp) };
-                            case null { Debug.print("getCompany No company"); };
-                        }                         
-                    };
-                };
-
-                let stableCompanies = Company.serializeCompanies(buf.vals());
-
-                return #Ok(stableCompanies);
-            };
-            case null { return #Err(#UnauthorizedOwner(true)); };
-        };
-    };
-
-     public query func getAllCompanies(page : Nat) : async Types.GenericTypes.Result<[Types.UsersTypes.StableCompany], Types.GenericTypes.Error> {
-
-        let buf = Buffer.Buffer<Company.Company>(0);
-        var i = 0;
-
-        for (key in companies.keys()) {
-            if (i >= page*20 and i <= page*20 + 20) {
-                let comp = companies.get(key);
-                switch comp {
-                    case (?comp) { buf.add(comp) };
-                    case null { Debug.print("getCompany No company"); };
-                }                         
-            };
-        };
-
-        let stableCompanies = Company.serializeCompanies(buf.vals());
-
-        return #Ok(stableCompanies);
+        _getCompany(owner)
     };
 
     public query func getBuyer(owner : Principal) : async Types.GenericTypes.Result<Types.UsersTypes.StableBuyer, Types.GenericTypes.Error> {
-        Debug.print("getBuyer START");
-        let buyer = buyers.get(owner);
-
-        switch (buyer) {
-            case (?buyer) {
-                Debug.print("getCompany BUYER FOUND");
-
-                let stableBuyer = buyer.serialize();
-                return #Ok(stableBuyer);
-            };
-            case null { return #Err(#Other("Company not found!")); };
-        };
-
+        _getBuyer(owner)
     };
 
     public func getOperasByPage(page: Nat): async Types.GenericTypes.Result<[Types.Opera.StableOpera], Types.GenericTypes.Error> {
@@ -490,9 +417,101 @@ actor {
 
     };
 
+    public func getOpera(operaId: Nat64): async Types.GenericTypes.Result<Types.Opera.StableOpera, Types.GenericTypes.Error> {
+        Debug.print("getOpera START");
+        let opera = operas.get(operaId);
+
+        switch (opera) {
+            case (?opera) {
+                Debug.print("getOpera FOUND");
+                let stableOpera = opera.serialize();
+                return #Ok(stableOpera);
+            };
+            case null { return #Err(#Other("opera not found!")); };
+        };
+    };
+
     public func getOperasSize(): async Nat {
         return operas.size();
     };
+
+
+    public func getOwnOperasByCompany(owner : Principal, page: Nat): async Types.GenericTypes.Result<[Types.Opera.StableOpera], Types.GenericTypes.Error> {
+        Debug.print("getOwnOperasByPage START"); 
+
+        let user = _getCompany(owner);
+
+        switch (user) {
+            case (#Ok(user)) {
+                let ownNfts = user.ownNfts;
+
+                let buf = Buffer.Buffer<Opera.Opera>(0);
+                var i = 0;
+
+                for (nft in ownNfts.vals()) {
+                    if (i >= page*20 and i <= page*20 + 20) {
+                        let operaVec = nft.1.metadata.properties[0].value;
+
+                        switch (operaVec) {
+                            case (#Nat64Content(operaId)) { 
+                                let opera = operas.get(operaId);
+                                switch opera {
+                                    case (?opera) { buf.add(opera) };
+                                    case null { Debug.print("getOperasByPage No more operas "); };
+                                }                         
+                                };
+                            case (_) { Debug.print("propertires wrong"); };
+                        };
+                    };
+                };
+
+                let stableOperas = Opera.serializeOperas(buf.vals());
+                return #Ok(stableOperas);
+                        
+            };
+            case (#Err(_)) { return #Err(#UnauthorizedOwner(true)) };
+        };
+
+    };
+
+    public func getOwnOperasByBuyer(owner : Principal, page: Nat): async Types.GenericTypes.Result<[Types.Opera.StableOpera], Types.GenericTypes.Error> {
+        Debug.print("getOwnOperasByBuyer START"); 
+
+        let user = _getBuyer(owner);
+
+        switch (user) {
+            case (#Ok(user)) {
+                let ownNfts = user.ownNfts;
+
+                let buf = Buffer.Buffer<Opera.Opera>(0);
+                var i = 0;
+
+                for (nft in ownNfts.vals()) {
+                    if (i >= page*20 and i <= page*20 + 20) {
+                        let operaVec = nft.1.metadata.properties[0].value;
+
+                        switch (operaVec) {
+                            case (#Nat64Content(operaId)) { 
+                                let opera = operas.get(operaId);
+                                switch opera {
+                                    case (?opera) { buf.add(opera) };
+                                    case null { Debug.print("getOperasByPage No more operas "); };
+                                }                         
+                                };
+                            case (_) { Debug.print("propertires wrong"); };
+                        };
+                    };
+                };
+
+                let stableOperas = Opera.serializeOperas(buf.vals());
+                return #Ok(stableOperas);
+                        
+            };
+            case (#Err(_)) { return #Err(#UnauthorizedOwner(true)) };
+        };
+
+    };
+
 
     public func login(owner : Principal): async Types.GenericTypes.Result<Types.GenericTypes.User<Types.UsersTypes.StableBuyer, Types.UsersTypes.StableCompany>, Types.GenericTypes.Error> {
         let buyer = buyers.get(owner);
@@ -685,6 +704,36 @@ actor {
                 case (?nft) { #Ok(nft.owner); };
                 case null { #Err(#TokenNotFound(true)); };
             };
+    };
+
+    private func _getBuyer(owner: Principal) : Types.GenericTypes.Result<Types.UsersTypes.StableBuyer, Types.GenericTypes.Error> {
+        Debug.print("getBuyer START");
+        let buyer = buyers.get(owner);
+
+        switch (buyer) {
+            case (?buyer) {
+                Debug.print("getCompany BUYER FOUND");
+
+                let stableBuyer = buyer.serialize();
+                return #Ok(stableBuyer);
+            };
+            case null { return #Err(#Other("Company not found!")); };
+        };
+    };
+
+    private func _getCompany(owner: Principal) : Types.GenericTypes.Result<Types.UsersTypes.StableCompany, Types.GenericTypes.Error> {
+        Debug.print("getCompany START");
+
+        let company = companies.get(owner);
+        switch (company) {
+            case (?company) {
+                Debug.print("getCompany COMPANY FOUND");
+
+                let stableCompany = company.serialize();
+                return #Ok(stableCompany);
+            };
+            case null { return #Err(#Other("Company not found!")); };
+        };
     };
 
 

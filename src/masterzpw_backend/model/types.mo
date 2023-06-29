@@ -182,13 +182,6 @@ module Nft {
         mintedAt: Int;
         mintedBy: Principal;
     };
-
-  
-    // public func deserializeNftsToMap(nfts : [Nft]) : HashMap.HashMap<TokenIdentifier.TokenIdentifier, Nft> {
-    //     let nftsTmp : [(TokenIdentifier.TokenIdentifier, Nft)] = Array.tabulate<(TokenIdentifier.TokenIdentifier, Nft)>(nfts.size(), func (i) { (nfts[i].tokenId, nfts[i]); });
-    //     let nfts = HashMap.fromIter<TokenIdentifier.TokenIdentifier, Nft>(nftsTmp.vals(), nftsTmp.size(), TokenIdentifier.equal, TokenIdentifier.hash);
-    // };
-
 };
 
 

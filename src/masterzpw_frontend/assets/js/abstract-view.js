@@ -2,10 +2,46 @@ import unauthorized from '../html/components/unauthorized.html'
 
 import logoImgPng from '../image/logo.png';
 
+import { createActor, controller } from "../../../declarations/controller";
+import { HttpAgent } from "@dfinity/agent";
 import { AuthClient } from "@dfinity/auth-client";
 
 
 export default class {
+
+    getUser = async () => {
+        let authClient = await AuthClient.create();
+
+        const identity = authClient.getIdentity();
+        const agent = new HttpAgent({identity});
+        let act = controller;
+
+        act = createActor(process.env.CONTROLLER_CANISTER_ID, {
+            agent,
+            canisterId: process.env.CONTROLLER_CANISTER_ID,
+        });
+
+        var result = await act.getBuyer();
+        var ownerType = null;
+        var user;
+
+        if (result.Ok) {
+            console.log(result)
+            ownerType = result.Ok.ownerType;
+            user = result.Ok;
+        } else {
+            result = await act.getCompany();
+            if (result.Ok) {
+                ownerType = result.Ok.ownerType;
+                user = result.Ok
+
+            } else {
+                return [null, null, false]
+            }
+        }
+
+        return [user, ownerType, true]
+    }
 
     constructor(params) {
         this.params = params;
