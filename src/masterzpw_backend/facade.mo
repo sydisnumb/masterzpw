@@ -1,13 +1,16 @@
 import Float "mo:base/Float";
 import Principal "mo:base/Principal";
+import Bool "mo:base/Bool";
+import Nat "mo:base/Nat";
+import Nat64 "mo:base/Nat64";
+
 
 import Company "./model/users/company";
 import Buyer "./model/users/buyer";
 import Types "./model/types";
-import Nat64 "mo:base/Nat64";
+
 import Ledger "canister:ledger";
-import Bool "mo:base/Bool";
-import Nat "mo:base/Nat";
+
 
 actor {
 
@@ -51,6 +54,10 @@ actor {
         } else {
             await Ledger.getOwnOperasByBuyer(caller, page);
         }
+    };
+
+    public shared ({caller}) func getSoldOperas(ownerType: Text, page : Nat): async Types.GenericTypes.Result<[Types.Opera.StableOpera], Types.GenericTypes.Error>  {
+        await Ledger.getSoldOperasByCompany(caller, page);
     };
 
 

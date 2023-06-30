@@ -37,10 +37,13 @@ export default class extends AbstractView {
       const identity = authClient.getIdentity();
       const agent = new HttpAgent({identity});
 
+
+
       act = createActor(process.env.CONTROLLER_CANISTER_ID, {
         agent,
         canisterId: process.env.CONTROLLER_CANISTER_ID,
       });
+
 
       let result = await act.login();
       
@@ -131,7 +134,6 @@ export default class extends AbstractView {
     }
 
     async loadContent(){
-
       if(await this.isAuthorized()){
         var [res, ownerType] = await this.checkFirstLogin();
         console.log(res)
@@ -188,6 +190,7 @@ export default class extends AbstractView {
     async loadNavbar() {
        // navbar setting
        const navbarDiv = document.getElementById("navbar-home");
+       console.log(navbarDiv)
        navbarDiv.innerHTML = navbar;
        const navbarLogo = document.getElementById("navbar-logo");
        navbarLogo.src = logo;

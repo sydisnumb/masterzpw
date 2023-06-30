@@ -4,6 +4,7 @@ let utils = require('./utils')
 import '../scss/styles.scss'
 
 import feedView from '../js/feed.js'
+import profile from '../js/profile.js'
 
 import completeProfile from '../html/pages/complete-profile.html';
 
@@ -123,6 +124,7 @@ export default class extends AbstractView {
 
         this.routesCompleteProfile = [
             { path: "/feed", view: feedView },
+            { path: "/profile", view: profile }
         ]
 
     }
@@ -142,7 +144,7 @@ export default class extends AbstractView {
         if(isAuthorizedFlag){
             let contentDiv = document.getElementById("content-div");
             contentDiv.style.backgroundRepeat = "repeat";
-            //contentDiv.style.backgroundImage = process.env.MASTERZPW_FRONTEND_CANISTER_ID + '/' + logoImg;
+            contentDiv.style.backgroundImage = logoImg;
             contentDiv.style.backgroundSize = "100px";
     
             let completForm = document.getElementById("complete-form");

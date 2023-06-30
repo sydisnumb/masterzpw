@@ -5,6 +5,7 @@ import profileView from '../js/profile.js';
 import landingPageView from '../js/landing-page.js';
 import feedView from '../js/feed.js'
 import createOperaView from '../js/create-opera.js'
+import operaView from '../js/opera.js'
 
 
 import profile from '../html/pages/profile.html';
@@ -12,6 +13,8 @@ import navbar from '../html/components/navbar-1.html'
 import footer from '../html/components/footer-1.html'
 import newOperaBtnCmp from '../html/components/new-opera-btn.html'
 import operaTabs from '../html/components/opera-tabs.html'
+import operaCard from '../html/components/opera-card.html'
+import operasRow from '../html/components/operas-row.html'
 
 import defaulUserPic from '../image/user.png'
 import userIcon from '../image/user-icon.png'
@@ -29,7 +32,7 @@ export default class extends AbstractView {
 
     getOwnOperas = async (user, page) => {
 
-        if(await this.isAuthorized()){
+        if(!await this.isAuthorized()){
             await this.loadUnauthorized()
             return
         }
@@ -45,19 +48,44 @@ export default class extends AbstractView {
             canisterId: process.env.CONTROLLER_CANISTER_ID,
         });
 
+        console.log(user)
         var result = await act.getOwnOperas(user.ownerType, page);
 
         if (result.Ok) {
             console.log(result)
-            operas = result.Ok;
-            return [operas, true]
+            return [result.Ok, true]
         } 
 
         return [null, false]
     }
 
-    getSoldOperas = async (pag) => {
+    getSoldOperas = async (user, page) => {
 
+        if(!await this.isAuthorized()){
+            await this.loadUnauthorized()
+            return
+        }
+
+        let authClient = await AuthClient.create();
+
+        const identity = authClient.getIdentity();
+        const agent = new HttpAgent({identity});
+        let act = controller;
+
+        act = createActor(process.env.CONTROLLER_CANISTER_ID, {
+            agent,
+            canisterId: process.env.CONTROLLER_CANISTER_ID,
+        });
+
+        console.log(user)
+        var result = await act.getSoldOperas(user.ownerType, page);
+
+        if (result.Ok) {
+            console.log(result)
+            return [result.Ok, true]
+        } 
+
+        return [null, false]
     }
 
     init = async () => {
@@ -93,7 +121,8 @@ export default class extends AbstractView {
             { path: "/profile", view: profileView },
             { path: "/landing-page", view: landingPageView },
             { path: "/create-opera", view: createOperaView },
-            { path: "/feed", view: feedView }
+            { path: "/feed", view: feedView },
+            { path: "/opera/:id", view: operaView }
         ]
     }
 
@@ -203,36 +232,36 @@ export default class extends AbstractView {
         this.page = 0
         this.loadMoreOperas(company, this.getOwnOperas)
 
-        const operaTab = document.getElementById("opera-tab");
+        const operaTab = document.getElementById("own-tab");
         const soldTab = document.getElementById("sold-tab");
+        const galleryDiv = document.getElementById("gallery-div");
 
-
-        // operaTab.onclick = async () => {
-        //     const ownBtn = document.getElementById("own-tab");
-        //     const soldBtn = document.getElementById("sold-tab");
+        operaTab.onclick = async () => {
             
-        //     if(!ownBtn.classList.contains("active")){ 
-        //         ownBtn.classList.add("active")
-        //         soldBtn.classList.remove("active")
+            if(!operaTab.classList.contains("active")){ 
+                galleryDiv.innerHTML = ""
 
-        //         this.opera = 0
-        //         this.loadGallery(company, this.getOwnOperas)
-        //     }
+                operaTab.classList.add("active")
+                soldTab.classList.remove("active")
+
+                this.page = 0
+                this.loadMoreOperas(company, this.getOwnOperas)
+            }
         
-        // };
+        };
 
-        // soldTab.onclick = async () => {
-        //     const soldBtn = document.getElementById("sold-tab");
-        //     const ownBtn = document.getElementById("own-tab");
-            
-        //     if(!soldBtn.classList.contains("active")){ 
-        //         soldBtn.classList.add("active")
-        //         ownBtn.classList.remove("active")
+        soldTab.onclick = async () => {     
 
-        //         this.opera = 0
-        //         this.loadGallery(company, getSoldOperas)
-        //     }
-        // };
+            if(!soldTab.classList.contains("active")){ 
+                soldTab.classList.add("active")
+                operaTab.classList.remove("active")
+                galleryDiv.innerHTML = ""
+
+
+                this.page = 0
+                this.loadMoreOperas(company, this.getSoldOperas)
+            }
+        };
 
         this.loadFooter()
 
@@ -240,56 +269,63 @@ export default class extends AbstractView {
 
     async loadMoreOperas (user, getOperaFunction) {
         this.isLoading = true
-        var [operas, flag] = await getOperaFunction(this.page)
-        console.log(operas, flag)
+        var [operas, flag] = await getOperaFunction(user, this.page)
+
 
         if(flag) {
             const galleryDiv = document.getElementById("gallery-div");
             const newOperas = document.createElement('div');
 
-            var i = 0;
-
-            for (var opera in operas) {
+            for (var i in operas) {
+                console.log(i)
+                var opera = operas[i]
                 var operasRowDiv;
 
                 if (i % 3 == 0) {
                     // carichi riga
                     operasRowDiv = document.createElement('div');
-                    operasRowDiv.innerHTML = operasRowDiv
-                    operasRowDiv.classList.add('row g-2');
+                    operasRowDiv.innerHTML = operasRow
+                    operasRowDiv.classList.add('row');
+                    operasRowDiv.classList.add('g-2');
+                    operasRowDiv.classList.add('d-flex');
+                    operasRowDiv.classList.add('justify-content-around');
+                    operasRowDiv.classList.add('align-items-center');
+                    operasRowDiv.classList.add('my-3');
 
                     // Access the desired element within the container
                     const col1 = operasRowDiv.querySelector('#col-1');
                     col1.innerHTML = operaCard
-
                     this.fill_col(col1, opera);
 
                 } else if (i % 3 == 1) {
                     const col2 = operasRowDiv.querySelector('#col-2');
                     col2.innerHTML = operaCard
- 
                     this.fill_col(col2, opera);
                 } else if (i % 3 == 2) {
                     const col3 = operasRowDiv.querySelector('#col-3');
                     col3.innerHTML = operaCard
- 
                     this.fill_col(col3, opera);
+
+                    newOperas.innerHTML += operasRowDiv.outerHTML;
                 }
 
-                newOperas.innerHTML += operasRowDiv;
-
+                
             }
 
-            let anchors = newOperas.getElementsByTagName('a')
-            console.log(anchors)
-            for (var anch in anchors) {
-                anch.addEventListener('click', () => {
-                    var operaId = this.getAttribute('id');
-                    routerfn.navigateTo("/opera/"+operaId, this.routesFeed);
-                } );
-            }
+            galleryDiv.innerHTML += newOperas.innerHTML;
 
-            galleryDiv.innerHTML += newOperas;
+            let anchors = galleryDiv.querySelectorAll('a');
+
+
+            // for (var i in anchors) {
+            //     var anchor = anchor[i];
+            //     anchor.onclick = async (anchor, routerfn, routesProfile) => {
+            //         var operaId = anchor.id;
+            //         routerfn.navigateTo("/opera/"+operaId, routesProfile);
+            //  }
+            // }
+
+          
         }
 
         this.page += 1
@@ -338,5 +374,13 @@ export default class extends AbstractView {
 
     }
 
+    fill_col(coloumn, opera) {
+        const anchor = coloumn.querySelectorAll('a')[0];
+        anchor.id = opera.id
+
+        const operaPic = coloumn.querySelectorAll('img')[0];
+        operaPic.src = opera.pictureUri;
+
+    };
 
 }
