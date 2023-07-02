@@ -1,3 +1,5 @@
+let routerfn = require("./router.js")
+
 import unauthorized from '../html/components/unauthorized.html'
 
 import logoImgPng from '../image/logo.png';
@@ -94,7 +96,7 @@ export default class {
     
     viewUnauthorized(){
         const unauthorizedDiv = document.getElementById("unauthorized-div");
-        authorizedDiv.classList.remove('d-flex');
+        unauthorizedDiv.classList.remove('d-flex');
         unauthorizedDiv.style.display = "block";
     }
     
@@ -117,5 +119,21 @@ export default class {
         
         this.hideSpinner()
         this.viewUnauthorized()
+    }
+
+
+    showOperasSpinner() {
+        const galleryDiv = document.getElementById("gallery-div");
+        galleryDiv.style.display = "none";
+
+        const loadingSpinnerOperas = document.getElementById("loadingSpinnerOperas");
+        loadingSpinnerOperas.style.display = "block";
+    }
+
+    hideOperasSpinner() {
+        const loadingSpinnerOperas = document.getElementById("loadingSpinnerOperas");
+        loadingSpinnerOperas.style.display = "none";
+        const galleryDiv = document.getElementById("gallery-div");
+        galleryDiv.style.display = "block";
     }
 }

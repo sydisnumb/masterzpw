@@ -95,7 +95,6 @@ export default class extends AbstractView {
                 routerfn.navigateTo('/profile', this.routesLandingPage)
                 return
               } else  {
-                console.log("eccolo")
                 routerfn.navigateTo('/complete-profile', this.routesLandingPage)
               }
             },

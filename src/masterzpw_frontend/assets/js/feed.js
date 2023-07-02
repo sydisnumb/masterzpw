@@ -9,7 +9,7 @@ import feed from '../html/pages/feed.html';
 import navbar from '../html/components/navbar-1.html'
 import footer from '../html/components/footer-1.html'
 import operasRow from '../html/components/operas-row.html'
-import operaCard from '../html/components/opera-card.html'
+import operaCardFeed from '../html/components/opera-card-feed.html'
 import nocontent from '../html/components/no-content.html'
 
 import userIcon from '../image/user-icon.png'
@@ -48,13 +48,7 @@ export default class extends AbstractView {
         return res;
     }
 
-    getOperasByPage = async (page) => {
-
-        if(await this.isAuthorized()){
-            await this.loadUnauthorized()
-            return
-        }
-
+    getOperasByPage = async (user, page) => {
         let authClient = await AuthClient.create();
 
         const identity = authClient.getIdentity();
@@ -68,12 +62,13 @@ export default class extends AbstractView {
 
         var result = await act.getOperas(page);
 
-
+        console.log(result)
         if (result.Ok) {
-            console.log(result)
-            operas = result.Ok;
-            this.page += 1;
-            return [operas, true]
+            if(result.Ok.length===0){
+                return [null, false]
+            }
+            
+            return [result.Ok, true]
         } 
 
         return [null, false]
@@ -86,11 +81,11 @@ export default class extends AbstractView {
             routerfn.router(this.routesFeed)
         });
 
-        window.addEventListener('scroll', async function() {
-            if (!this.isLoading && window.innerHeight + window.scrollY >= document.body.offsetHeight) {
-              await loadMoreContent();
-            }
-        });
+        // window.addEventListener('scroll', async function() {
+        //     if (!this.isLoading && window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+        //       await loadMoreContent();
+        //     }
+        // });
 
         let authClient = await AuthClient.create();
 
@@ -124,7 +119,7 @@ export default class extends AbstractView {
             { path: "/profile", view: profileView },
             { path: "/landing-page", view: landingPageView },
             { path: "/feed", view: feedView },
-            { path: "/profile/:id", view: operaView}
+            { path: "/opera/:id", view: operaView}
         ]
     }
 
@@ -144,93 +139,100 @@ export default class extends AbstractView {
             return
         }
 
-        const navbarDiv = document.getElementById("navbar-div");
-        navbarDiv.innerHTML = navbar;
+        this.loadNavbar()
+        this.loadFooter()
 
-        const togglerIcon = document.getElementById("toggler-icon");
-        togglerIcon.src = userIcon;
-
-        const logoFeed = document.getElementById("feed-a");
-        logoFeed.src = logo;
-
-        
-        const footerDiv = document.getElementById("footer-div");
-        footerDiv.innerHTML = footer;
-
-        const icponchain = document.getElementById("icp-onchain");
-        icponchain.src = icponchainImg;
-
-        var flag = await this.checkOperas()
         this.page = 0;
-
-        if(!flag) {
-            await this.loadNoOperas()
-        } else {                
-            this.loadMoreOperas()
-        }
+        this.showOperasSpinner();
+        this.loadMoreOperas(null, this.getOperasByPage, this.routesFeed)
 
         super.loadContent()
-        
     }
 
-    async loadMoreOperas() {
+    async loadMoreOperas(user, getOperaFunction, routes) {
         this.isLoading = true
-        var [operas, flag] = await getOperasByPage(this.page)
+        var [operas, flag] = await getOperaFunction(user, this.page)
 
-        if(flag) {
-            const galleryDiv = document.getElementById("gallery-div");
-            const newOperas = document.createElement('div');
+        if(!flag) {
+            this.loadNoOperas()
+            return
+        }
+        const galleryDiv = document.getElementById("gallery-div");
+        const newOperas = document.createElement('div');
+        
+        var i;
+        for (i in operas) {
+            console.log(i)
+            var opera = operas[i]
+            var operasRowDiv;
 
-            var i = 0;
+            if (i % 3 == 0) {
+                // carichi riga
+                operasRowDiv = document.createElement('div');
+                operasRowDiv.innerHTML = operasRow
+                operasRowDiv.classList.add('row');
+                operasRowDiv.classList.add('align-self-center');
+                operasRowDiv.classList.add('align-items-center');
+                operasRowDiv.classList.add('my-3');
+                operasRowDiv.classList.add('no-gutters');
+                operasRowDiv.style.height = "300px";
 
-            for (var opera in operas) {
-                var operasRowDiv;
 
-                if (i % 3 == 0) {
-                    // carichi riga
-                    operasRowDiv = document.createElement('div');
-                    operasRowDiv.innerHTML = operasRow
-                    operasRowDiv.classList.add('row g-2');
+                // Access the desired element within the container
+                const col1 = operasRowDiv.querySelector('#col-1');
+                col1.classList.add('bg-white')
+                col1.innerHTML = operaCardFeed
+                this.fill_col(col1, opera);
 
-                    // Access the desired element within the container
-                    const col1 = operasRowDiv.querySelector('#col-1');
-                    col1.innerHTML = operaCard
+            } else if (i % 3 == 1) {
+                const col2 = operasRowDiv.querySelector('#col-2');
+                col2.classList.add('bg-white')
+                col2.innerHTML = operaCardFeed
+                this.fill_col(col2, opera);
+            } else if (i % 3 == 2) {
+                const col3 = operasRowDiv.querySelector('#col-3');
+                col3.classList.add('bg-white')
+                col3.innerHTML = operaCardFeed
+                this.fill_col(col3, opera);
 
-                    this.fill_col(col1, opera);
-
-                } else if (i % 3 == 1) {
-                    const col2 = operasRowDiv.querySelector('#col-2');
-                    col2.innerHTML = operaCard
- 
-                    this.fill_col(col2, opera);
-                } else if (i % 3 == 2) {
-                    const col3 = operasRowDiv.querySelector('#col-3');
-                    col3.innerHTML = operaCard
- 
-                    this.fill_col(col3, opera);
-                }
-
-                newOperas.innerHTML += operasRowDiv;
-
+                newOperas.innerHTML += operasRowDiv.outerHTML;
             }
-
-            let anchors = newOperas.getElementsByTagName('a')
-            for (var anch in anchors) {
-                anch.addEventListener('click', () => {
-                    var operaId = this.getAttribute('id');
-                    routerfn.navigateTo("/opera/"+operaId, this.routesFeed);
-                } );
-            }
-
-            galleryDiv.innerHTML += newOperas;
         }
 
+        if (i % 3 != 2) {
+            newOperas.innerHTML += operasRowDiv.outerHTML;
+        }
+
+        galleryDiv.innerHTML += newOperas.innerHTML;
+
+        let anchors = galleryDiv.querySelectorAll('.card-link');
+        var self = this
+
+        anchors.forEach(function(anchor) {
+            anchor.onclick = async function(event) {
+                var operaId = this.id;
+                routerfn.navigateTo("/opera/"+operaId, self.routesFeed);
+            }
+        });
+
+        this.page += 1
+        this.hideOperasSpinner()
+
         this.isLoading = false
+    }
+
+    fill_col(coloumn, opera) {
+        const anchor = coloumn.querySelectorAll('a')[0];
+        anchor.id = opera.id
+
+        const operaPic = coloumn.querySelectorAll('img')[0];
+        operaPic.src = opera.pictureUri;
     };
 
     loadNoOperas() {
         const galleryDiv = document.getElementById("gallery-div");
         galleryDiv.innerHTML = nocontent
+
 
         const par = document.getElementById("no-content-p");
         par.textContent = "No operas available at the moment!";
@@ -240,27 +242,26 @@ export default class extends AbstractView {
 
         const nocontentImg = document.getElementById("no-content-img");
         nocontentImg.src = nocontentIcon
+
+        this.hideOperasSpinner()
     }
 
+    loadNavbar(){
+        const navbarDiv = document.getElementById("navbar-div");
+        navbarDiv.innerHTML = navbar;
 
+        const togglerIcon = document.getElementById("toggler-icon");
+        togglerIcon.src = userIcon;
 
-    fill_col(coloumn, opera) {
-        const anchor = coloumn.querySelectorAll('a')[0];
-        anchor.id = opera.id
+        const logoFeed = document.getElementById("feed-a");
+        logoFeed.src = logo;
+    }
 
-        const operaPic = coloumn.querySelectorAll('img')[0];
-        operaPic.src = opera.pictureUri;
+    loadFooter(){
+        const footerDiv = document.getElementById("footer-div");
+        footerDiv.innerHTML = footer;
 
-        const title = coloumn.querySelector('#opera-title');
-        title.textContent = opera.name
-
-        const description = coloumn.querySelector('#opera-description');
-        description.textContent = opera.description
-
-        const nft = coloumn.querySelector('#nft-id');
-        nft.textContent = opera.nfts[0]
-
-        const price = coloumn.querySelector('#opera-title');
-        price.textContent = opera.name
-    };
+        const icponchain = document.getElementById("icp-onchain");
+        icponchain.src = icponchainImg;
+    }
 }

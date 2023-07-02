@@ -11,6 +11,7 @@ import opera from '../html/pages/opera.html';
 import navbar from '../html/components/navbar-1.html'
 import footer from '../html/components/footer-1.html'
 import nocontent from '../html/components/no-content.html'
+import paypalBtn from '../html/components/paypal-btn.html'
 
 
 import nocontentIcon from '../image/no-content-icon.png'
@@ -22,6 +23,7 @@ import icponchainImg from '../image/icp-onchain.png';
 import { createActor, controller } from "../../../declarations/controller";
 import { HttpAgent } from "@dfinity/agent";
 import { AuthClient } from "@dfinity/auth-client";
+import { loadScript } from "@paypal/paypal-js";
 
 import AbstractView from "./abstract-view.js";
 
@@ -30,10 +32,10 @@ export default class extends AbstractView {
 
     getOpera = async (operaId) => {
 
-
-        if(! await this.isAuthorized()){
+        console.log(parseInt(operaId))
+        if(! await this.isAuthorized() || isNaN(parseInt(operaId))){
             await this.loadUnauthorized()
-            return
+            return [null, false]
         }
 
         let authClient = await AuthClient.create();
@@ -98,28 +100,55 @@ export default class extends AbstractView {
         if(ownerType==="company"){
             await this.loadCompanyPage()
         } else {
-            await this.loadBuyerPage()
+            await this.loadBuyerPage(user)
         }
 
         super.loadContent()
     }
 
-    async loadBuyerPage(){
-        this.loadNavbar(company)
-        this.loadFooter()
-
+    async loadBuyerPage(user){
+        this.loadNavbar(user)
         const feed = document.getElementById("feed-a");
-
         feed.onclick = async () => {
             routerfn.navigateTo("/feed", this.routesProfile)
         }
 
+        await this.loadOperaInfo()
+        await this.laodPaypalBtn()     
+        this.loadFooter()
     }
 
-    async loadCompanyPage(company){
+    async loadCompanyPage(){
         this.loadNavbar()
         await this.loadOperaInfo()
         this.loadFooter()
+    }
+
+    
+
+    async loadOperaInfo(){
+        var [opera, flag] = await this.getOpera(this.params.id)
+        const contentDiv = document.getElementById("content-id");
+
+        if(!flag){
+            this.loadNoOperas(contentDiv)
+            return
+        } 
+
+        const operaImg = document.getElementById("opera-img");
+        operaImg.src = opera.pictureUri
+
+        const title = document.getElementById("title");
+        title.textContent = opera.name
+
+        const description = document.getElementById("description");
+        description.textContent = opera.description
+
+        const price = document.getElementById("price");
+        price.textContent = "€ "+opera.price
+
+        return opera
+        
     }
 
     loadNavbar(){
@@ -156,42 +185,68 @@ export default class extends AbstractView {
         icponchain.src = icponchainImg;
     }
 
-    async loadOperaInfo(){
-        var [opera, flag] = await this.getOpera(this.params.id)
-        const contentDiv = document.getElementById("content-id");
-
-        console.log(opera)
-
-        if(!flag){
-            this.loadNoOperas(contentDiv)
-            return
-        } 
-
-        const operaImg = document.getElementById("opera-img");
-        operaImg.src = opera.pictureUri
-
-        const title = document.getElementById("title");
-        title.textContent = opera.name
-
-        const description = document.getElementById("description");
-        description.textContent = opera.description
-
-        const price = document.getElementById("price");
-        price.textContent = opera.price + " Euro"
-        
-    }
-
-
     loadNoOperas(div) {
         div.innerHTML = nocontent
 
         const par = document.getElementById("no-content-p");
-        par.textContent = "No operas available at the moment!";
+        par.textContent = "No opera!";
 
         const par1 = document.getElementById("no-content-p1");
         par1.textContent = "";
 
         const nocontentImg = document.getElementById("no-content-img");
         nocontentImg.src = nocontentIcon
+    }
+
+    async laodPaypalBtn(company){
+        console.log("paypal")
+        const operaInfoDiv = document.getElementById("opera-info");
+        operaInfoDiv.innerHTML += paypalBtn;
+        const self = this;
+        const identity = self.authClient.getIdentity();
+        const agent = new HttpAgent({identity});
+        let act = controller;
+
+        act = createActor(process.env.CONTROLLER_CANISTER_ID, {
+            agent,
+            canisterId: process.env.CONTROLLER_CANISTER_ID,
+        });
+
+        await loadScript({ 
+            "client-id": process.env.CLIENT_ID,
+            "intent": "mixed"
+           // "merchantID": company.banckAddress
+        }).then((paypal) => {
+            console.log("render")
+            let paypal_buttons = paypal.Buttons({
+                style: {
+                    height: 30,
+                    width: 50
+                },
+                async createOrder() {
+                    
+
+                    let result = await act.createOrder("mixed", parseInt(self.params.id));
+                },
+                async onApprove(data) {
+                    let order_id = data.orderID;
+                    await act.transferNft();
+                },
+                onCancel: function(data) {
+                    confirm("Do want to confirm?")
+                    
+                    if (result) {
+                        paypal_buttons.close();
+                    }
+                },
+                onError: function(err) {
+                    console.log(err);
+                    alert("Somthing went wrong. Try again!");
+                }
+              }).render('#paypal-button-container');
+            })
+            .catch((err) => {
+                console.error("failed to load the PayPal JS SDK script", err);
+            });
     }
 }

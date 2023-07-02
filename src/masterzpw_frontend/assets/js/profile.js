@@ -13,6 +13,7 @@ import navbar from '../html/components/navbar-1.html'
 import footer from '../html/components/footer-1.html'
 import newOperaBtnCmp from '../html/components/new-opera-btn.html'
 import operaTabs from '../html/components/opera-tabs.html'
+import nocontent from '../html/components/no-content.html'
 import operaCard from '../html/components/opera-card.html'
 import operasRow from '../html/components/operas-row.html'
 
@@ -20,6 +21,7 @@ import defaulUserPic from '../image/user.png'
 import userIcon from '../image/user-icon.png'
 import logo from '../image/logo.png';
 import icponchainImg from '../image/icp-onchain.png';
+import nocontentIcon from '../image/no-content-icon.png'
 
 
 import { createActor, controller } from "../../../declarations/controller";
@@ -52,8 +54,7 @@ export default class extends AbstractView {
         var result = await act.getOwnOperas(user.ownerType, page);
 
         if (result.Ok) {
-            console.log(result)
-            return [result.Ok, true]
+            return [result.Ok, result.Ok.length!==0]
         } 
 
         return [null, false]
@@ -81,8 +82,7 @@ export default class extends AbstractView {
         var result = await act.getSoldOperas(user.ownerType, page);
 
         if (result.Ok) {
-            console.log(result)
-            return [result.Ok, true]
+            return [result.Ok, result.Ok.length!==0]
         } 
 
         return [null, false]
@@ -160,9 +160,10 @@ export default class extends AbstractView {
         super.loadContent()
     }
 
-    async loadBuyerPage(){
-        this.loadNavbar(company)
-        this.loadFooter()
+    async loadBuyerPage(buyer){
+        this.loadNavbar(buyer)
+        this.loadCommonUserInfo(buyer)
+
 
         const feed = document.getElementById("feed-a");
         feed.onclick = async () => {
@@ -171,37 +172,15 @@ export default class extends AbstractView {
 
         const soldnftsDiv = document.getElementById("soldnfts-div");
         soldnftsDiv.style.display = "none";
-      
-        const profilePic = document.getElementById("profile-pic");
-        await utils.checkImageSourceExists(user.profilePictureUri, function(exists) {
-            profilePic.src = (exists) ? user.profilePictureUri : defaulUserPic
-        })
 
-        const username = document.getElementById("username");
-        username.textContent = user.username;
-
-        const principal = document.getElementById("principal");
-        principal.textContent = user.principal;
-
-        const operaCount = document.getElementById("opera-count");
-        operaCount.textContent = user.ownNfts.length;
-
-        const nftsCount = document.getElementById("nfts-count");
-        nftsCount.textContent = user.ownNfts.length;
-
-        const usernameDesc = document.getElementById("username-span");
-        usernameDesc.textContent = user.username;
+        this.showOperasSpinner()
         
-       
+        this.page = 0
+        this.loadMoreOperas(buyer, this.getOwnOperas)  
+        
 
-        //var [operas, flag] = await getOperas(0)
+        this.loadFooter()
 
-        // if(!flag) {
-        //     // scrivi qualcosa
-        // } else {
-        //     const galleryDiv = document.getElementById("gallery-div");
-        //     this.loadGallery()
-        // }
     }
 
     async loadCompanyPage(company){
@@ -228,6 +207,8 @@ export default class extends AbstractView {
 
         const tabsDiv = document.getElementById("tabs-div");
         tabsDiv.innerHTML = operaTabs;
+
+        this.showOperasSpinner()
         
         this.page = 0
         this.loadMoreOperas(company, this.getOwnOperas)
@@ -238,28 +219,34 @@ export default class extends AbstractView {
 
         operaTab.onclick = async () => {
             
-            if(!operaTab.classList.contains("active")){ 
+            if(!operaTab.classList.contains("active")){
+                this.showOperasSpinner()
+                operaTab.classList.add("active")
+                soldTab.classList.add('disabled')
+                soldTab.classList.remove("active")
                 galleryDiv.innerHTML = ""
 
-                operaTab.classList.add("active")
-                soldTab.classList.remove("active")
-
+                
                 this.page = 0
-                this.loadMoreOperas(company, this.getOwnOperas)
+                await this.loadMoreOperas(company, this.getOwnOperas)
+                soldTab.classList.remove('disabled')
+
             }
-        
         };
 
         soldTab.onclick = async () => {     
 
-            if(!soldTab.classList.contains("active")){ 
+            if(!soldTab.classList.contains("active")){
+                this.showOperasSpinner()
                 soldTab.classList.add("active")
+                operaTab.classList.add('disabled')
                 operaTab.classList.remove("active")
                 galleryDiv.innerHTML = ""
 
 
                 this.page = 0
-                this.loadMoreOperas(company, this.getSoldOperas)
+                await this.loadMoreOperas(company, this.getSoldOperas)
+                operaTab.classList.remove('disabled')
             }
         };
 
@@ -267,70 +254,6 @@ export default class extends AbstractView {
 
     }
 
-    async loadMoreOperas (user, getOperaFunction) {
-        this.isLoading = true
-        var [operas, flag] = await getOperaFunction(user, this.page)
-
-
-        if(flag) {
-            const galleryDiv = document.getElementById("gallery-div");
-            const newOperas = document.createElement('div');
-
-            for (var i in operas) {
-                console.log(i)
-                var opera = operas[i]
-                var operasRowDiv;
-
-                if (i % 3 == 0) {
-                    // carichi riga
-                    operasRowDiv = document.createElement('div');
-                    operasRowDiv.innerHTML = operasRow
-                    operasRowDiv.classList.add('row');
-                    operasRowDiv.classList.add('g-2');
-                    operasRowDiv.classList.add('d-flex');
-                    operasRowDiv.classList.add('justify-content-around');
-                    operasRowDiv.classList.add('align-items-center');
-                    operasRowDiv.classList.add('my-3');
-
-                    // Access the desired element within the container
-                    const col1 = operasRowDiv.querySelector('#col-1');
-                    col1.innerHTML = operaCard
-                    this.fill_col(col1, opera);
-
-                } else if (i % 3 == 1) {
-                    const col2 = operasRowDiv.querySelector('#col-2');
-                    col2.innerHTML = operaCard
-                    this.fill_col(col2, opera);
-                } else if (i % 3 == 2) {
-                    const col3 = operasRowDiv.querySelector('#col-3');
-                    col3.innerHTML = operaCard
-                    this.fill_col(col3, opera);
-
-                    newOperas.innerHTML += operasRowDiv.outerHTML;
-                }
-
-                
-            }
-
-            galleryDiv.innerHTML += newOperas.innerHTML;
-
-            let anchors = galleryDiv.querySelectorAll('a');
-
-
-            // for (var i in anchors) {
-            //     var anchor = anchor[i];
-            //     anchor.onclick = async (anchor, routerfn, routesProfile) => {
-            //         var operaId = anchor.id;
-            //         routerfn.navigateTo("/opera/"+operaId, routesProfile);
-            //  }
-            // }
-
-          
-        }
-
-        this.page += 1
-        this.isLoading = false
-    }
 
     loadNavbar(){
         const navbarDiv = document.getElementById("navbar-div");
@@ -356,9 +279,8 @@ export default class extends AbstractView {
     loadCommonUserInfo(user){
 
         const profilePic = document.getElementById("profile-pic");
-        utils.checkImageSourceExists(user.profilePictureUri, function(exists) {
-            profilePic.src = (exists) ? user.profilePictureUri : defaulUserPic
-        })
+        profilePic.src =  user.profilePictureUri
+
 
         const username = document.getElementById("username");
         username.textContent = user.username;
@@ -372,6 +294,96 @@ export default class extends AbstractView {
         const nftsCount = document.getElementById("nfts-count");
         nftsCount.textContent = user.ownNfts.length;
 
+    }
+
+    loadNoOperas(message) {
+        const galleryDiv = document.getElementById("gallery-div");
+        galleryDiv.innerHTML = nocontent
+        galleryDiv.classList.add("py-5")
+
+        const par = document.getElementById("no-content-p");
+        par.textContent = "No operas available at the moment!";
+
+        const par1 = document.getElementById("no-content-p1");
+        par1.textContent = message;
+
+        const nocontentImg = document.getElementById("no-content-img");
+        nocontentImg.src = nocontentIcon
+
+        this.hideOperasSpinner()
+    }
+
+    async loadMoreOperas(user, getOperaFunction) {
+        this.isLoading = true
+        var [operas, flag] = await getOperaFunction(user, this.page)
+
+        if(!flag) {
+            this.loadNoOperas("")
+            return
+        }
+        const galleryDiv = document.getElementById("gallery-div");
+        galleryDiv.classList.remove("py-5")
+
+        const newOperas = document.createElement('div');
+        
+        var i;
+        for (i in operas) {
+            console.log(i)
+            var opera = operas[i]
+            var operasRowDiv;
+
+            if (i % 3 == 0) {
+                // carichi riga
+                operasRowDiv = document.createElement('div');
+                operasRowDiv.innerHTML = operasRow
+                operasRowDiv.classList.add('row');
+                operasRowDiv.classList.add('align-self-center');
+                operasRowDiv.classList.add('align-items-center');
+                operasRowDiv.classList.add('my-3');
+                operasRowDiv.classList.add('no-gutters');
+                operasRowDiv.style.height = "300px";
+
+                // Access the desired element within the container
+                const col1 = operasRowDiv.querySelector('#col-1');
+                col1.classList.add('bg-white')
+                col1.innerHTML = operaCard
+                this.fill_col(col1, opera);
+
+            } else if (i % 3 == 1) {
+                const col2 = operasRowDiv.querySelector('#col-2');
+                col2.classList.add('bg-white')
+                col2.innerHTML = operaCard
+                this.fill_col(col2, opera);
+            } else if (i % 3 == 2) {
+                const col3 = operasRowDiv.querySelector('#col-3');
+                col3.classList.add('bg-white')
+                col3.innerHTML = operaCard
+                this.fill_col(col3, opera);
+
+                newOperas.innerHTML += operasRowDiv.outerHTML;
+            }
+        }
+
+        if (i % 3 != 2) {
+            newOperas.innerHTML += operasRowDiv.outerHTML;
+        }
+
+        galleryDiv.innerHTML += newOperas.innerHTML;
+
+        let anchors = galleryDiv.querySelectorAll('.card-link');
+        const self = this
+
+        anchors.forEach(function(anchor) {
+            anchor.onclick = async function(event) {
+                var operaId = this.id;
+                routerfn.navigateTo("/opera/"+operaId, self.routesProfile);
+            }
+        });
+
+        this.page += 1
+        this.hideOperasSpinner()
+
+        this.isLoading = false
     }
 
     fill_col(coloumn, opera) {
