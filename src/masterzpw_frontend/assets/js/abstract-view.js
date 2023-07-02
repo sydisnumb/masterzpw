@@ -11,6 +11,7 @@ import { AuthClient } from "@dfinity/auth-client";
 
 export default class {
 
+
     getUser = async () => {
         let authClient = await AuthClient.create();
 
@@ -47,6 +48,16 @@ export default class {
 
     constructor(params) {
         this.params = params;
+        
+        window.onbeforeunload = function() {
+            window.location.href = "/";
+        }
+        
+        // Event listener for backward and forward navigation
+        window.onpopstate = function(event) {
+            window.location.href = "/";
+        }
+    
     }
 
     isAuthorized = async () => {

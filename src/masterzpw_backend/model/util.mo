@@ -4,6 +4,8 @@ import Nat8 "mo:base/Nat8";
 import Nat32 "mo:base/Nat32";
 import Nat64 "mo:base/Nat64";
 import Result "mo:base/Result";
+import Buffer "mo:base/Buffer";
+import Text "mo:base/Text";
 
 module Base64 {
     public module StdEncoding {
@@ -251,3 +253,35 @@ module Base64 {
         #ok(si, dstLen - 1);
     };
 };
+
+module JsonParser {
+    public func parseValue(json : Text, obj : Text) : Text {
+        var r : Text = "";
+        let b : Buffer.Buffer<Text> = Buffer.Buffer(1);
+        for (e in Text.split(json, #text "[")) {
+            if (Text.contains(e, #text obj)) {
+                for (o : Text in Text.split(e, #text "{")) {
+                    var j : Text = Text.replace(o, #text "}", "");
+                    j := Text.replace(j, #text "]", "");
+                    if (Text.endsWith(j, #text ",")) {
+                        j := Text.trimEnd(j, #text ",");
+                    };
+                    for (f : Text in Text.split(j, #text ",")) {
+                        if (Text.contains(f, #text obj)) {
+                            for (t : Text in Text.split(f, #text ":")) {
+                                switch (Text.contains(t, #text obj)) {
+                                    case (false) {
+                                        b.add(Text.replace(t, #text "\"", ""));
+                                    };
+                                    case (true) {};
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        r := b.get(b.size() - 1);
+        return r;
+    };
+}

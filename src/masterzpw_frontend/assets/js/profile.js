@@ -17,11 +17,12 @@ import nocontent from '../html/components/no-content.html'
 import operaCard from '../html/components/opera-card.html'
 import operasRow from '../html/components/operas-row.html'
 
-import defaulUserPic from '../image/user.png'
-import userIcon from '../image/user-icon.png'
-import logo from '../image/logo.png';
-import icponchainImg from '../image/icp-onchain.png';
-import nocontentIcon from '../image/no-content-icon.png'
+let defaulUserPic = 'https://ipfs.io/ipfs/QmZD4ZQUPocPBiF24epXEvZeHHmwLutNyJx8QZeKBUnCTH'
+let nocontentIcon = "https://ipfs.io/ipfs/QmXPX5UbfuV8PzUdCwYp94p5TTmVSgAUzKiHNdFM75de8d"
+let userIcon = 'https://ipfs.io/ipfs/QmVhnFJkhvRpcebhewdknLBtSNsf9YPLLm8vp7M2Ys35rv'
+let logo = 'https://ipfs.io/ipfs/QmP5zE9GR4caevBvuFUscoZhg3dApNz2sZoj2UPhFhL6nv';
+let icponchainImg = 'https://ipfs.io/ipfs/Qmb8WZ5qoHorgn36B11ogaY1Nw4iH51EEgc7KVX78Rqcz3';
+
 
 
 import { createActor, controller } from "../../../declarations/controller";
@@ -89,16 +90,10 @@ export default class extends AbstractView {
     }
 
     init = async () => {
-        
-        window.addEventListener("popstate", async () =>{
-            routerfn.router(this.routesProfile)
-        });
-
         let authClient = await AuthClient.create();
 
         const viewProfile = document.getElementById("profile-a");
         const logout = document.getElementById("logout-a");
-
 
         viewProfile.onclick = async () => {
             routerfn.navigateTo("/profile", this.routesProfile)
@@ -315,7 +310,7 @@ export default class extends AbstractView {
 
     async loadMoreOperas(user, getOperaFunction) {
         this.isLoading = true
-        var [operas, flag] = await getOperaFunction(user, this.page)
+        var [operas, flag] = await getOperaFunction(user, -1)
 
         if(!flag) {
             this.loadNoOperas("")

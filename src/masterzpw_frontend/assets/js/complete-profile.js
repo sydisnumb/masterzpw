@@ -9,7 +9,9 @@ import profile from '../js/profile.js'
 import completeProfile from '../html/pages/complete-profile.html';
 
 import spinner from '../html/components/spinner.html'
-import logoImg from '../image/cover.png';
+
+let logoImg = 'https://ipfs.io/ipfs/QmP5zE9GR4caevBvuFUscoZhg3dApNz2sZoj2UPhFhL6nv';
+
 
 import { createActor, controller } from "../../../declarations/controller";
 import { HttpAgent } from "@dfinity/agent";
@@ -21,11 +23,6 @@ export default class extends AbstractView {
 
 
     init = async () => {
-
-        window.addEventListener("popstate", async () =>{
-            routerfn.router(this.routesCompleteProfile)
-        });
-
 
         let checkbox = document.getElementById("artist-checkbox");
         let submit = document.getElementById("submit-btn");

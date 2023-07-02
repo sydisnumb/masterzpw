@@ -7,7 +7,6 @@ import Principal "mo:base/Principal";
 import Text "mo:base/Text";
 import Bool "mo:base/Bool";
 import Int16 "mo:base/Int16";
-import Float "mo:base/Float";
 import Int8 "mo:base/Int8";
 import Int32 "mo:base/Int32";
 import Int "mo:base/Int";
@@ -84,6 +83,7 @@ module GenericTypes {
     #CompanyNotFound: Bool;
     #BuyerNotFound: Bool;
     #SomethingWentWrong: Bool;
+    #NotFoud: Bool;
 
     #Other: Text;
   };
@@ -207,7 +207,7 @@ module Opera {
         name : Text;
         description: Text;
         pictureUri : Text;
-        price: Float;
+        price: Int;
         nfts : [TokenIdentifier.TokenIdentifier];
     };
 };

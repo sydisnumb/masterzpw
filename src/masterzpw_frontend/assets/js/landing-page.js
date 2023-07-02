@@ -10,9 +10,10 @@ import profile from './profile.js'
 import feedView from '../js/feed.js'
 
 
-import logo from '../image/logo.png';
-import landingImg from '../image/landing-image.png';
-import icponchainImg from '../image/icp-onchain.png';
+let landingImg = 'https://ipfs.io/ipfs/QmPG8vWa8wUhftHASBsY6YSFdnuoWsmRZtgQFvFoasmJGC?filename=landing-image.png'
+let logo = 'https://ipfs.io/ipfs/QmP5zE9GR4caevBvuFUscoZhg3dApNz2sZoj2UPhFhL6nv';
+let icponchainImg = 'https://ipfs.io/ipfs/Qmb8WZ5qoHorgn36B11ogaY1Nw4iH51EEgc7KVX78Rqcz3';
+
 
 import landingPage from '../html/pages/landing-page.html'
 import navbar from '../html/components/navbar.html'
@@ -59,8 +60,6 @@ export default class extends AbstractView {
     }
 
     init = async () => {
-
-      window.addEventListener("popstate", async () => {routerfn.router(this.routesLandingPage)});
 
       const signUpBtn = document.getElementById("signup-btn");
       const logInBtn = document.getElementById("login-btn");

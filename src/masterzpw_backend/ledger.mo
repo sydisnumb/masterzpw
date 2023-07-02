@@ -11,7 +11,6 @@ import Types "./model/types";
 import Company "./model/users/company";
 import Buyer "./model/users/buyer";
 import Opera "./model/art/opera";
-import Float "mo:base/Float";
 import Int "mo:base/Int";
 import Buffer "mo:base/Buffer";
 import Text "mo:base/Text";
@@ -201,13 +200,13 @@ actor {
         let interfaces = [#Mint, #TransactionHistory, #Transfer];
     };
 
-    public shared func transferFrom(from: Principal, to : Principal, tokenId : Types.TokenIdentifier.TokenIdentifier) : async Types.GenericTypes.Result<Types.GenericTypes.TxIdentifier, Types.GenericTypes.Error> {
-        let res = _ownerOf(tokenId);
+    public shared func transferFrom(from: Principal, to : Principal, tknId : Types.TokenIdentifier.TokenIdentifier) : async Types.GenericTypes.Result<Types.GenericTypes.TxIdentifier, Types.GenericTypes.Error> {
+        let res = _ownerOf(tknId);
 
         let ownerPri =
             switch res {
-                case (#Ok(ownerRet)) ownerRet;
-                case (#Err(#OwnerNotFound(true))) { return #Err(#OwnerNotFound(true)); };
+                case (#Ok(ownerRet)) { ownerRet };
+                case (#Err(#TokenNotFound(true))) { return #Err(#TokenNotFound(true)); };
                 case (#Err(_)) { return #Err(#Other("Something went wrong"))};
             };
 
@@ -219,12 +218,12 @@ actor {
             return #Err(#SelfTransfer(true));
         };
 
-        let token = nfts.get(tokenId);
+        let token = nfts.get(tknId);
         let newToken : Types.Nft.Nft =
             switch (token) {
                 case null { return #Err(#TokenNotFound(true))};
                 case (?token) { {
-                    tokenId = tokenId;
+                    tokenId = tknId;
                     owner = to;
                     metadata = {
                         transferredAt = ?Time.now();
@@ -233,7 +232,7 @@ actor {
                         operator = null;
                         properties = token.metadata.properties;
                         isBurned = false;
-                        tokenIdentifier = tokenId;
+                        tokenIdentifier = tknId;
                         burnedAt = token.metadata.burnedAt;
                         burnedBy = token.metadata.burnedBy;
                         approvedAt = token.metadata.approvedAt;
@@ -245,13 +244,13 @@ actor {
                 };
             };
 
-        ignore nfts.replace(tokenId, newToken);
+        ignore nfts.replace(tknId, newToken);
         let company = companies.get(from);
         switch (company) {
             case null { return #Err(#TokenNotFound(true)); };
             case (?company) {
-                company.deletNftFromOwnById(tokenId);
-                company.addNftToOwn(newToken);
+                company.deletNftFromOwnById(tknId);
+                company.addNftToSold(newToken);
             };
         };
 
@@ -296,7 +295,7 @@ actor {
 
 
 
-    public shared func createNewOpera(owner : Principal, operaName : Text, opDescription: Text, picUri : Text, opPrice:  Float, quantity : Int) : async Types.GenericTypes.Result<Nat64, Types.GenericTypes.Error> {
+    public shared func createNewOpera(owner : Principal, operaName : Text, opDescription: Text, picUri : Text, opPrice:  Int, quantity : Int) : async Types.GenericTypes.Result<Nat64, Types.GenericTypes.Error> {
         Debug.print("createNewOpera START");
 
         let company = companies.get(owner);
@@ -323,7 +322,7 @@ actor {
                         value = #TextContent(opera.getPictureUri());
                     }, {
                         key = "operaPrice";
-                        value = #FloatContent(opera.getPrice());
+                        value = #IntContent(opera.getPrice());
                     }];
 
                 let buf = Buffer.Buffer<Types.TokenIdentifier.TokenIdentifier>(0);
@@ -398,12 +397,13 @@ actor {
         _getBuyer(owner)
     };
 
-    public func getOperasByPage(page: Nat): async Types.GenericTypes.Result<[Types.Opera.StableOpera], Types.GenericTypes.Error> {
+
+    public func getOperasByPage(page: Int): async Types.GenericTypes.Result<[Types.Opera.StableOpera], Types.GenericTypes.Error> {
         let buf = Buffer.Buffer<Opera.Opera>(0);
         var i = 0;
 
         for (key in operas.keys()) {
-            if (i >= page*20 and i <= page*20 + 20) {
+            if (page == -1 or (i >= page*20 and i <= page*20 + 20)) {
                 let oper = operas.get(key);
                 switch oper {
                     case (?oper) { buf.add(oper) };
@@ -436,8 +436,8 @@ actor {
     };
 
 
-    public func getOwnOperasByCompany(owner : Principal, page: Nat): async Types.GenericTypes.Result<[Types.Opera.StableOpera], Types.GenericTypes.Error> {
-        Debug.print("getOwnOperasByPage START"); 
+    public func getOwnOperasByCompany(owner : Principal, page: Int): async Types.GenericTypes.Result<[Types.Opera.StableOpera], Types.GenericTypes.Error> {
+        Debug.print("getOwnOperasByCompany START"); 
 
         let user = _getCompany(owner);
 
@@ -449,7 +449,7 @@ actor {
                 var i = 0;
 
                 for (nft in ownNfts.vals()) {
-                    if (i >= page*20 and i <= page*20 + 20) {
+                    if (page == -1 or (i >= page*20 and i <= page*20 + 20)) {
                         let operaVec = nft.1.metadata.properties[0].value;
 
                         switch (operaVec) {
@@ -477,8 +477,8 @@ actor {
     };
 
 
-    public func getSoldOperasByCompany(owner : Principal, page: Nat): async Types.GenericTypes.Result<[Types.Opera.StableOpera], Types.GenericTypes.Error> {
-        Debug.print("getOwnOperasByPage START"); 
+    public func getSoldOperasByCompany(owner : Principal, page: Int): async Types.GenericTypes.Result<[Types.Opera.StableOpera], Types.GenericTypes.Error> {
+        Debug.print("getSoldOperasByCompany START"); 
 
         let user = _getCompany(owner);
 
@@ -486,11 +486,12 @@ actor {
             case (#Ok(user)) {
                 let soldNfts = user.soldNfts;
 
+
                 let buf = Buffer.Buffer<Opera.Opera>(0);
                 var i = 0;
 
                 for (nft in soldNfts.vals()) {
-                    if (i >= page*20 and i <= page*20 + 20) {
+                    if (page == -1 or (i >= page*20 and i <= page*20 + 20)) {
                         let operaVec = nft.1.metadata.properties[0].value;
 
                         switch (operaVec) {
@@ -517,9 +518,37 @@ actor {
 
     };
 
+    public func getCompanyByOperaId(operaId : Nat64) : async Types.GenericTypes.Result<Types.UsersTypes.StableCompany, Types.GenericTypes.Error> {
+        let opera = operas.get(operaId);
+
+        switch (opera) {
+            case (?opera) {
+                try {
+                    let nftId = opera.getNftsIds()[0];
+
+                    let principal = _ownerOf(nftId);
+                    Debug.print(debug_show(principal));
+                    switch (principal) {
+                        case (#Ok(principal)) {  
+                            let result = _getCompany(principal);
+
+                            switch(result) {
+                                case (#Ok(company)) {  #Ok(company); };
+                                case (_) {  #Err(#CompanyNotFound(true)); }; 
+                            };
+                        };
+                        case (#Err(_)) { #Err(#CompanyNotFound(true)); }
+                    };
+                } catch (e) {
+                    return #Err(#SomethingWentWrong(true));
+                };                
+            };
+            case (null) { #Err(#NotFoud(true)); }; 
+        };
+    };
 
 
-    public func getOwnOperasByBuyer(owner : Principal, page: Nat): async Types.GenericTypes.Result<[Types.Opera.StableOpera], Types.GenericTypes.Error> {
+    public func getOwnOperasByBuyer(owner : Principal, page: Int): async Types.GenericTypes.Result<[Types.Opera.StableOpera], Types.GenericTypes.Error> {
         Debug.print("getOwnOperasByBuyer START"); 
 
         let user = _getBuyer(owner);
@@ -532,7 +561,7 @@ actor {
                 var i = 0;
 
                 for (nft in ownNfts.vals()) {
-                    if (i >= page*20 and i <= page*20 + 20) {
+                    if (page == -1 or (i >= page*20 and i <= page*20 + 20)) {
                         let operaVec = nft.1.metadata.properties[0].value;
 
                         switch (operaVec) {
@@ -589,20 +618,22 @@ actor {
     };
 
 
+
     private func _mint(owner : Principal, properties: Types.GenericTypes.Vec) : Types.GenericTypes.Result<Types.TokenIdentifier.TokenIdentifier, Types.GenericTypes.Error> {
         Debug.print("_mint START");
         let company = companies.get(owner);
+        let newNftId = tokenId;
 
         switch (company) {
             case (?company) {
-                let nft = nfts.get(tokenId);
+                let nft = nfts.get(newNftId);
                 Debug.print(debug_show(nft));
 
                 switch (nft) {
                     case (?nft) { return #Err(#ExistedNFT(true)); };
                     case (null) {
                         var newNft : Types.Nft.Nft = {
-                            tokenId = tokenId;
+                            tokenId = newNftId;
                             owner = owner;
                             metadata = {
                                 transferredAt = null;
@@ -611,7 +642,7 @@ actor {
                                 operator = null;
                                 properties = properties;
                                 isBurned = false;
-                                tokenIdentifier = tokenId;
+                                tokenIdentifier = newNftId;
                                 burnedAt = null;
                                 burnedBy = null;
                                 approvedAt = null;
@@ -621,7 +652,7 @@ actor {
                             };
                         };
 
-                        nfts.put(tokenId, newNft);
+                        nfts.put(newNftId, newNft);
                         Debug.print("_mint NFT added to nfts");
 
                         company.addNftToOwn(newNft);
@@ -630,7 +661,7 @@ actor {
 
                         tokenId += 1;
                         transactionId += 1;
-                        return #Ok(tokenId);
+                        return #Ok(newNftId);
                     };
                 };
             };
@@ -660,12 +691,18 @@ actor {
     };
 
     private func _ownerOf(tokenId: Types.TokenIdentifier.TokenIdentifier) : Types.GenericTypes.Result<Principal, Types.GenericTypes.Error> {
+        Debug.print(debug_show(tokenId));
+        Debug.print(debug_show(nfts.size()));
         let nft = nfts.get(tokenId);
-        let res =
-            switch(nft) {
-                case (?nft) { #Ok(nft.owner); };
-                case null { #Err(#TokenNotFound(true)); };
+        
+
+        switch(nft) {
+            case (?nft) { 
+                Debug.print(debug_show(nft.owner));
+                #Ok(nft.owner);
             };
+            case (null) { #Err(#TokenNotFound(true)); };
+        };
     };
 
     private func _getBuyer(owner: Principal) : Types.GenericTypes.Result<Types.UsersTypes.StableBuyer, Types.GenericTypes.Error> {

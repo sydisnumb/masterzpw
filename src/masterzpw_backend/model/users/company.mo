@@ -79,8 +79,8 @@ module  {
             ownNfts.put(token.tokenId, token);
         };
 
-        public func addNftsToSold(token: (Types.TokenIdentifier.TokenIdentifier, Types.Nft.Nft)) : () {
-            soldNfts.put(token.0, token.1);
+        public func addNftToSold(token: Types.Nft.Nft) : () {
+            soldNfts.put(token.tokenId, token);
         };
 
         public func removeNftFromOwnById(tokenId: Types.TokenIdentifier.TokenIdentifier) : ?Types.Nft.Nft {

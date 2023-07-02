@@ -1,4 +1,3 @@
-import Float "mo:base/Float";
 import Principal "mo:base/Principal";
 import Bool "mo:base/Bool";
 import Nat "mo:base/Nat";
@@ -48,7 +47,7 @@ actor {
         await Ledger.createBuyer(caller, username, profilePictureUri);
     };
 
-    public shared ({caller}) func createNewOpera(operaName : Text, operaDescription: Text, operaPicUri : Text, operaPrice: Float) : async Types.GenericTypes.Result<Nat64, Types.GenericTypes.Error> {
+    public shared ({caller}) func createNewOpera(operaName : Text, operaDescription: Text, operaPicUri : Text, operaPrice: Int) : async Types.GenericTypes.Result<Nat64, Types.GenericTypes.Error> {
         await Ledger.createNewOpera(caller, operaName, operaDescription, operaPicUri, operaPrice, 1);
     };
 
@@ -56,7 +55,7 @@ actor {
         await Ledger.getOpera(operaId);
     };
 
-    public shared ({caller}) func getOperas(page : Nat) : async Types.GenericTypes.Result<[Types.Opera.StableOpera], Types.GenericTypes.Error> {
+    public shared ({caller}) func getOperas(page : Int) : async Types.GenericTypes.Result<[Types.Opera.StableOpera], Types.GenericTypes.Error> {
         await Ledger.getOperasByPage(page);
     };
 
@@ -66,7 +65,7 @@ actor {
     };
 
 
-    public shared ({caller}) func getOwnOperas(ownerType: Text, page : Nat): async Types.GenericTypes.Result<[Types.Opera.StableOpera], Types.GenericTypes.Error>  {
+    public shared ({caller}) func getOwnOperas(ownerType: Text, page : Int): async Types.GenericTypes.Result<[Types.Opera.StableOpera], Types.GenericTypes.Error>  {
         if(ownerType=="company") {
             await Ledger.getOwnOperasByCompany(caller, page);
         } else {
@@ -74,7 +73,7 @@ actor {
         }
     };
 
-    public shared ({caller}) func getSoldOperas(ownerType: Text, page : Nat): async Types.GenericTypes.Result<[Types.Opera.StableOpera], Types.GenericTypes.Error>  {
+    public shared ({caller}) func getSoldOperas(ownerType: Text, page : Int): async Types.GenericTypes.Result<[Types.Opera.StableOpera], Types.GenericTypes.Error>  {
         await Ledger.getSoldOperasByCompany(caller, page);
     };
 
@@ -83,7 +82,7 @@ actor {
         await Ledger.getBuyer(caller);
     };
 
-    // public shared ({caller}) func getBuyers(page : Nat) : async Types.GenericTypes.Result<Nat64, Types.GenericTypes.Error> {
+    // public shared ({caller}) func getBuyers(page : Int) : async Types.GenericTypes.Result<Nat64, Types.GenericTypes.Error> {
     //     await Ledger.createNewOpera(caller, page);
     // };
 
@@ -97,11 +96,25 @@ actor {
         }
     };
 
-    public shared ({caller}) func createOrder(intent : Text, value :  Float) : async Text{
-        let access_token = await getPaypalToken();
-        Debug.print(access_token);
-        await createRemoteOrder(access_token, intent, value);
+
+    public shared ({caller}) func getCompanyByOperaId(operaId : Nat64 ): async Types.GenericTypes.Result<Types.UsersTypes.StableCompany, Types.GenericTypes.Error> {
+        await Ledger.getCompanyByOperaId(operaId);
     };
+
+
+    // Paypal handlers
+    public shared ({caller}) func createOrder(intent : Text, price : Int) : async Text {
+        let access_token = await getPaypalToken();
+        await createRemoteOrder(access_token, price);
+    };
+
+    public shared ({caller}) func completeOrder(intent: Text, orderId : Text, from: Principal, to: Principal, nft: Types.TokenIdentifier.TokenIdentifier) : async Text{
+        let access_token = await getPaypalToken();
+        ignore await Ledger.transferFrom(from, to, nft);
+        await completeRemoteOrder(access_token, orderId);
+        //gestire scenari alternativi
+    };
+
 
     func getPaypalToken() : async Text {
         let ic : Types.HttpsTypes.IC = actor ("aaaaa-aa");
@@ -112,7 +125,7 @@ actor {
         let auth : Text = client_id # ":" # client_secret;
         let auth_blob : Blob = Text.encodeUtf8(auth);
         let auth_nat8 : [Nat8] = Blob.toArray(auth_blob);
-        let auth_base64_nat8 = Util.StdEncoding.encode(auth_nat8);
+        let auth_base64_nat8 = Util.Base64.StdEncoding.encode(auth_nat8);
         let auth_base64 = Text.decodeUtf8(Blob.fromArray(auth_base64_nat8));
 
         let auth_base64_str =
@@ -157,30 +170,16 @@ actor {
             case (?y) { y };
         };
 
-        type TokenResp = {
-            scope: Text;
-            access_token: Text;
-            token_type: Text;
-            app_id: Text;
-            expires_in: Text;
-            nonce: Text;
-        };
-
-        let blob = JSON.fromText(decoded_text);
-        let json : ?TokenResp = from_candid(blob);
-        let keys = ["expires_in"];
-        let values = JSON.toText(to_candid(json), keys);
-
-        Debug.print(json.access_token);
-
-        let r = "moment";    
+        Util.JsonParser.parseValue(decoded_text, "access_token");
     };
+
 
     func generateUUID() : Text {
         Int.toText(Time.now());
     };
 
-    func createRemoteOrder(accessToken : Text, intent : Text, value :  Float) : async Text {
+
+    func createRemoteOrder(accessToken : Text, value :  Int) : async Text {
         let ic : Types.HttpsTypes.IC = actor ("aaaaa-aa");
 
         let idempotency_key: Text = generateUUID();
@@ -193,13 +192,14 @@ actor {
         ];
 
   
-        let data : Text = "{\"intent\": \"" # intent # "\", \"purchase_units\": [{ \"amount\": { \"currency_code\": \"EUR\", \"value\": \"" # Float.toText(value) # "\"}}]}";
+        let data : Text = "{\"intent\": \"CAPTURE\", \"purchase_units\": [{ \"amount\": { \"currency_code\": \"EUR\", \"value\": \"" # Int.toText(value) # "\"}}]}";
+        Debug.print(data);
         let request_body_as_Blob: Blob = Text.encodeUtf8(data); 
         let request_body_as_nat8: [Nat8] = Blob.toArray(request_body_as_Blob);
 
 
         let http_request : Types.HttpsTypes.HttpRequestArgs = {
-            url = ep_url # "/v1/oauth2/token";
+            url = ep_url # "/v2/checkout/orders";
             max_response_bytes = null; 
             headers = request_headers;
             body = ?request_body_as_nat8; 
@@ -217,5 +217,45 @@ actor {
             case (null) { "No value returned" };
             case (?y) { y };
         };
+
+     
     };
-}
+
+    func completeRemoteOrder(accessToken : Text, orderId: Text) : async Text {
+        let ic : Types.HttpsTypes.IC = actor ("aaaaa-aa");
+
+        let idempotency_key: Text = generateUUID();
+        let request_headers = [
+            { name = "Host"; value = host # ":443" },
+            { name = "User-Agent"; value = "http_post_sample" },
+            { name= "Content-Type"; value = "application/json" },
+            { name= "Idempotency-Key"; value = idempotency_key },
+            { name = "Authorization"; value = "Bearer " # accessToken }
+        ];
+
+        let data : Text = "{\"id\": \"" # orderId # "\"}";
+        Debug.print(data);
+        let request_body_as_Blob: Blob = Text.encodeUtf8(data); 
+        let request_body_as_nat8: [Nat8] = Blob.toArray(request_body_as_Blob);
+
+        let http_request : Types.HttpsTypes.HttpRequestArgs = {
+            url = ep_url # "/v2/checkout/orders/" # orderId # "/CAPTURE";
+            max_response_bytes = null; 
+            headers = request_headers;
+            body= ?request_body_as_nat8;
+            method = #post;
+            transform = null; 
+        };
+
+
+        Cycles.add(15_431_484_615);   
+        let http_response : Types.HttpsTypes.HttpResponsePayload = await ic.http_request(http_request);
+        
+
+        let response_body: Blob = Blob.fromArray(http_response.body);
+        let decoded_text: Text = switch (Text.decodeUtf8(response_body)) {
+            case (null) { "No value returned" };
+            case (?y) { y };
+        };
+    }
+ }

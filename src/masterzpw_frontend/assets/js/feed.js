@@ -12,10 +12,10 @@ import operasRow from '../html/components/operas-row.html'
 import operaCardFeed from '../html/components/opera-card-feed.html'
 import nocontent from '../html/components/no-content.html'
 
-import userIcon from '../image/user-icon.png'
-import logo from '../image/logo.png';
-import icponchainImg from '../image/icp-onchain.png';
-import nocontentIcon from '../image/no-content-icon.png'
+let nocontentIcon = "https://ipfs.io/ipfs/QmXPX5UbfuV8PzUdCwYp94p5TTmVSgAUzKiHNdFM75de8d"
+let userIcon = 'https://ipfs.io/ipfs/QmVhnFJkhvRpcebhewdknLBtSNsf9YPLLm8vp7M2Ys35rv'
+let logo = 'https://ipfs.io/ipfs/QmP5zE9GR4caevBvuFUscoZhg3dApNz2sZoj2UPhFhL6nv';
+let icponchainImg = 'https://ipfs.io/ipfs/Qmb8WZ5qoHorgn36B11ogaY1Nw4iH51EEgc7KVX78Rqcz3';
 
 
 import { createActor, controller } from "../../../declarations/controller";
@@ -76,16 +76,6 @@ export default class extends AbstractView {
 
 
     init = async () => {
-        
-        window.addEventListener("popstate", async () =>{
-            routerfn.router(this.routesFeed)
-        });
-
-        // window.addEventListener('scroll', async function() {
-        //     if (!this.isLoading && window.innerHeight + window.scrollY >= document.body.offsetHeight) {
-        //       await loadMoreContent();
-        //     }
-        // });
 
         let authClient = await AuthClient.create();
 
@@ -151,7 +141,7 @@ export default class extends AbstractView {
 
     async loadMoreOperas(user, getOperaFunction, routes) {
         this.isLoading = true
-        var [operas, flag] = await getOperaFunction(user, this.page)
+        var [operas, flag] = await getOperaFunction(user, -1)
 
         if(!flag) {
             this.loadNoOperas()

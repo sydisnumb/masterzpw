@@ -2,15 +2,17 @@ import HashMap "mo:base/HashMap";
 import Iter "mo:base/Iter";
 import Buffer "mo:base/Buffer";
 import Array "mo:base/Array";
-import Float "mo:base/Float";
+import Debug "mo:base/Debug";
 
 import Types "../types";
+import Nat "mo:base/Nat";
+import Int "mo:base/Int";
 
 
 module Opera {
    
 
-    public class Opera(identifier : Nat64, operaName : Text, opDescription: Text, picUri : Text, opPrice: Float, mintedNfts : [Types.TokenIdentifier.TokenIdentifier]) {
+    public class Opera(identifier : Nat64, operaName : Text, opDescription: Text, picUri : Text, opPrice: Int, mintedNfts : [Types.TokenIdentifier.TokenIdentifier]) {
         private var id = identifier;
         private var name = operaName;
         private var description = opDescription;
@@ -22,8 +24,8 @@ module Opera {
         public func getName() : Text = name;
         public func getDescription() : Text = description;
         public func getPictureUri() : Text = pictureUri;
-        public func getPrice() : Float = price;
-        public func getNftsIds() : [Types.TokenIdentifier.TokenIdentifier] = mintedNfts;
+        public func getPrice() : Int = price;
+        public func getNftsIds() : [Types.TokenIdentifier.TokenIdentifier] {  nfts; };
 
         public func setId(newId : Nat64) : () {
             id := newId;
@@ -41,7 +43,7 @@ module Opera {
             pictureUri := newPictureUri;
         };
         
-        public func setPrice(newPrice : Float) : () {
+        public func setPrice(newPrice : Int) : () {
             price := newPrice;
         };
 
@@ -58,7 +60,7 @@ module Opera {
 
             return false;
         };
-
+        
         public func serialize() : Types.Opera.StableOpera {
             let op : Types.Opera.StableOpera = {
                 id = id;

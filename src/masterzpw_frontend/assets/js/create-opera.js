@@ -8,7 +8,6 @@ import profile from '../js/profile.js'
 import createOpera from '../html/pages/create-opera.html';
 
 import spinner from '../html/components/spinner.html'
-import logoImg from '../image/cover.png';
 
 import { createActor, controller } from "../../../declarations/controller";
 import { HttpAgent } from "@dfinity/agent";
@@ -21,12 +20,6 @@ export default class extends AbstractView {
 
 
     init = async () => {
-
-        window.addEventListener("popstate", async () =>{
-            routerfn.router(this.routesCompleteProfile)
-        });
-
-
         let cancel = document.getElementById("cancel-btn");
         let submit = document.getElementById("submit-btn");
         
@@ -67,14 +60,14 @@ export default class extends AbstractView {
             } else if(!isImage){
                 alert("Insert a valid IPFS url image.")
             } else {
-                if(isNaN(parseFloat(operaPrice))){
+                if(isNaN(parseInt(operaPrice))){
                     alert("Insert a return price.")
                     submit.innerHTML = 'Create new opera'
                     submit.disabled = false
                     return                    
                 }
             
-                var res = await act.createNewOpera(operaTitle, operaDescription, operaUrl,  parseFloat(operaPrice));
+                var res = await act.createNewOpera(operaTitle, operaDescription, operaUrl,  parseInt(operaPrice));
 
                 if(res.Ok){
                     let operaId = res.Ok
