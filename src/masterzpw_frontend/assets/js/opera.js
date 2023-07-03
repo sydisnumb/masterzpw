@@ -271,7 +271,6 @@ export default class extends AbstractView {
                     routerfn.navigateTo("/profile", self.routesOpera);
                 },
                 onCancel: function(data) {
-                    confirm("Do want to confirm?")
                     
                     if (result) {
                         paypal_buttons.close();
@@ -279,7 +278,6 @@ export default class extends AbstractView {
                 },
                 onError: function(err) {
                     console.log(err);
-                    alert("Somthing went wrong. Try again!");
                 }
               }).render('#paypal-button-container');
             })

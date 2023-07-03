@@ -141,7 +141,7 @@ export default class extends AbstractView {
         if(isAuthorizedFlag){
             let contentDiv = document.getElementById("content-div");
             contentDiv.style.backgroundRepeat = "repeat";
-            contentDiv.style.backgroundImage = logoImg;
+            contentDiv.style.backgroundImage = "url('" + logoImg + "')";
             contentDiv.style.backgroundSize = "100px";
     
             let completForm = document.getElementById("complete-form");
