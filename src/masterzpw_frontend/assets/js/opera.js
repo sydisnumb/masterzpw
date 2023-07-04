@@ -33,7 +33,6 @@ export default class extends AbstractView {
 
     getOpera = async (operaId) => {
 
-        console.log(parseInt(operaId))
         if(! await this.isAuthorized() || isNaN(parseInt(operaId))){
             await this.loadUnauthorized()
             return [null, false]
@@ -78,7 +77,6 @@ export default class extends AbstractView {
         });
 
         let result = await act.getCompanyByOperaId(parseInt(operaId));
-        console.log(result);
 
         if(result.Ok !== undefined) {
             return [result.Ok, true];
@@ -139,7 +137,7 @@ export default class extends AbstractView {
         }
 
         let opera = await this.loadOperaInfo();
-        await this.laodPaypalBtn(user, opera);    
+        await this.loadPaypalBtn(user, opera);    
         this.loadFooter()
     }
 
@@ -224,7 +222,7 @@ export default class extends AbstractView {
         nocontentImg.src = nocontentIcon
     }
 
-    async laodPaypalBtn(buyer, opera){
+    async loadPaypalBtn(buyer, opera){
         const operaInfoDiv = document.getElementById("opera-info");
         operaInfoDiv.innerHTML += paypalBtn;
 
@@ -236,11 +234,14 @@ export default class extends AbstractView {
         const agent = new HttpAgent({identity});
         let act = controller;
 
-        act = createActor(process.env.CONTROLLER_CANISTER_ID, {
+        this.act = createActor(process.env.CONTROLLER_CANISTER_ID, {
             agent,
             canisterId: process.env.CONTROLLER_CANISTER_ID,
         });
-        //console.log(await this.getCompanyByOperaId(this.params.id))
+
+        if(this.params.own !== undefined) {
+            return
+        }
 
         if(!flag){
             const operaInfoDiv = document.getElementById("opera-info");
@@ -256,28 +257,47 @@ export default class extends AbstractView {
         }).then((paypal) => {
             let paypal_buttons = paypal.Buttons({
                 style: {
-                    height: 30,
+                    height: 40,
                     width: 50
                 },
-                async createOrder() {
-                    let result = await act.createOrder("CAPTURE", parseInt(opera.price));
-                    return JSON.parse(result).id;
-                },
-                async onApprove(data) {
-                    console.log(data);
-                    let order_id = data.orderID;
-                    let resp = await act.completeOrder("CAPTURE", order_id, company.principal, buyer.principal, opera.nfts[0]);
-                    console.log(resp);
+                async onClick () {
+                    let resp = await act.simulateCompleteOrder("CAPTURE", 'example', company.principal, buyer.principal, opera.nfts[0]);
+                    console.log(resp)
                     routerfn.navigateTo("/profile", self.routesOpera);
                 },
-                onCancel: function(data) {
+                async createOrder() {
+                    console.log("createOrder")
+                    // console.log(self.act)
+                    // let result = await self.act.createOrder("CAPTURE", parseInt(opera.price)).catch((e) => {
+                    //     console.log(e)
+                    //     console.log(e.message)
+                    // });
+                    // console.log(result)
+                    // const operaDiv = document.getElementById("content-id")
+                    // operaDiv.classList.remove("h-100")
+                    // return JSON.parse(result).id;
                     
-                    if (result) {
-                        paypal_buttons.close();
-                    }
+
+                },
+                async onApprove(data) {
+                    
+                    // let order_id = data.orderID;
+                    // let resp = await act.completeOrder("CAPTURE", order_id, company.principal, buyer.principal, opera.nfts[0]);
+                    // const operaDiv = document.getElementById("content-id")
+                    // operaDiv.classList.add("h-100")
+                    // routerfn.navigateTo("/profile", self.routesOpera);
+
+
+                },
+                onCancel: function(data) {
+                    //paypal_buttons.close();
+                    const operaDiv = document.getElementById("content-id")
+                    operaDiv.classList.add("h-100")
                 },
                 onError: function(err) {
-                    console.log(err);
+                    const operaDiv = document.getElementById("content-id")
+                    operaDiv.classList.add("h-100")
+                    //alert("Something went wrong.")
                 }
               }).render('#paypal-button-container');
             })

@@ -51,7 +51,6 @@ export default class extends AbstractView {
             canisterId: process.env.CONTROLLER_CANISTER_ID,
         });
 
-        console.log(user)
         var result = await act.getOwnOperas(user.ownerType, page);
 
         if (result.Ok) {
@@ -79,7 +78,7 @@ export default class extends AbstractView {
             canisterId: process.env.CONTROLLER_CANISTER_ID,
         });
 
-        console.log(user)
+
         var result = await act.getSoldOperas(user.ownerType, page);
 
         if (result.Ok) {
@@ -117,7 +116,7 @@ export default class extends AbstractView {
             { path: "/landing-page", view: landingPageView },
             { path: "/create-opera", view: createOperaView },
             { path: "/feed", view: feedView },
-            { path: "/opera/:id", view: operaView }
+            { path: "/opera/:id/:own", view: operaView }
         ]
     }
 
@@ -137,9 +136,6 @@ export default class extends AbstractView {
             return
         }
         var [user, ownerType, flag] = await this.getUser()
-
-        console.log(user, ownerType, flag)
-
         if(!flag) {
             await this.loadUnauthorized()
             return
@@ -323,7 +319,6 @@ export default class extends AbstractView {
         
         var i;
         for (i in operas) {
-            console.log(i)
             var opera = operas[i]
             var operasRowDiv;
 
@@ -371,7 +366,7 @@ export default class extends AbstractView {
         anchors.forEach(function(anchor) {
             anchor.onclick = async function(event) {
                 var operaId = this.id;
-                routerfn.navigateTo("/opera/"+operaId, self.routesProfile);
+                routerfn.navigateTo("/opera/"+operaId+"/own", self.routesProfile);
             }
         });
 

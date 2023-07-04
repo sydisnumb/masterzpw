@@ -98,7 +98,7 @@ export default class extends AbstractView {
               }
             },
             onError: () => {
-              console.log("error")
+              alert("Something went wrong.")
             }          
         });
       };
@@ -134,7 +134,6 @@ export default class extends AbstractView {
     async loadContent(){
       if(await this.isAuthorized()){
         var [res, ownerType] = await this.checkFirstLogin();
-        console.log(res)
 
         if (!res) {
           if (ownerType === 'buyer'){
@@ -188,7 +187,6 @@ export default class extends AbstractView {
     async loadNavbar() {
        // navbar setting
        const navbarDiv = document.getElementById("navbar-home");
-       console.log(navbarDiv)
        navbarDiv.innerHTML = navbar;
        const navbarLogo = document.getElementById("navbar-logo");
        navbarLogo.src = logo;

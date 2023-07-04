@@ -71,7 +71,6 @@ export default class extends AbstractView {
 
                 if(res.Ok){
                     let operaId = res.Ok
-                    console.log(res)
                     routerfn.navigateTo("/opera/"+operaId, this.routesCreateOpera)
 
                 } else {

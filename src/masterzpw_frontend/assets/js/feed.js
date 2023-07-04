@@ -26,28 +26,6 @@ import AbstractView from "./abstract-view.js";
 
 export default class extends AbstractView {
 
-    checkOperas = async () => { 
-
-        if(!await this.isAuthorized()){
-            await this.loadUnauthorized()
-            return
-        }
-
-        let authClient = await AuthClient.create();
-
-        const identity = authClient.getIdentity();
-        const agent = new HttpAgent({identity});
-        let act = controller;
-
-        act = createActor(process.env.CONTROLLER_CANISTER_ID, {
-            agent,
-            canisterId: process.env.CONTROLLER_CANISTER_ID,
-        });
-
-        let res = await act.checkOperas();
-        return res;
-    }
-
     getOperasByPage = async (user, page) => {
         let authClient = await AuthClient.create();
 
@@ -62,7 +40,6 @@ export default class extends AbstractView {
 
         var result = await act.getOperas(page);
 
-        console.log(result)
         if (result.Ok) {
             if(result.Ok.length===0){
                 return [null, false]
@@ -152,7 +129,6 @@ export default class extends AbstractView {
         
         var i;
         for (i in operas) {
-            console.log(i)
             var opera = operas[i]
             var operasRowDiv;
 
@@ -171,17 +147,22 @@ export default class extends AbstractView {
                 // Access the desired element within the container
                 const col1 = operasRowDiv.querySelector('#col-1');
                 col1.classList.add('bg-white')
+                col1.classList.add('shadow-sm')
                 col1.innerHTML = operaCardFeed
                 this.fill_col(col1, opera);
 
             } else if (i % 3 == 1) {
                 const col2 = operasRowDiv.querySelector('#col-2');
                 col2.classList.add('bg-white')
+                col2.classList.add('shadow-sm')
+
                 col2.innerHTML = operaCardFeed
                 this.fill_col(col2, opera);
             } else if (i % 3 == 2) {
                 const col3 = operasRowDiv.querySelector('#col-3');
                 col3.classList.add('bg-white')
+                col3.classList.add('shadow-sm')
+
                 col3.innerHTML = operaCardFeed
                 this.fill_col(col3, opera);
 

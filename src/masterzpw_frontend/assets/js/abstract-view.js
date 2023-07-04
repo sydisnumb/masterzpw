@@ -29,7 +29,6 @@ export default class {
         var user;
 
         if (result.Ok) {
-            console.log(result)
             ownerType = result.Ok.ownerType;
             user = result.Ok;
         } else {
@@ -107,7 +106,7 @@ export default class {
     
     viewUnauthorized(){
         const unauthorizedDiv = document.getElementById("unauthorized-div");
-        unauthorizedDiv.classList.remove('d-flex');
+        unauthorizedDiv.classList.add('d-flex');
         unauthorizedDiv.style.display = "block";
     }
     

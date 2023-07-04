@@ -31,6 +31,8 @@ actor {
     private let host : Text = "api-m.sandbox.paypal.com";
     private let ep_url = "https://api-m.sandbox.paypal.com";
 
+    private let MAX_RESP_BYTES : Nat64 = 2000;
+
     public shared ({caller}) func login(): async Types.GenericTypes.Result<Types.GenericTypes.User<Types.UsersTypes.StableBuyer, Types.UsersTypes.StableCompany>, Types.GenericTypes.Error> {
         await Ledger.login(caller);
     };
@@ -108,11 +110,16 @@ actor {
         await createRemoteOrder(access_token, price);
     };
 
+    public shared ({caller}) func simulateCompleteOrder(intent: Text, orderId : Text, from: Principal, to: Principal, nft: Types.TokenIdentifier.TokenIdentifier) : async Text{
+        ignore await Ledger.transferFrom(from, to, nft);
+        let res = "Ok";
+    };
+
     public shared ({caller}) func completeOrder(intent: Text, orderId : Text, from: Principal, to: Principal, nft: Types.TokenIdentifier.TokenIdentifier) : async Text{
         let access_token = await getPaypalToken();
         ignore await Ledger.transferFrom(from, to, nft);
         await completeRemoteOrder(access_token, orderId);
-        //gestire scenari alternativi
+        // gestire scenari alternativi
     };
 
 
@@ -152,7 +159,7 @@ actor {
 
         let http_request : Types.HttpsTypes.HttpRequestArgs = {
             url = ep_url # "/v1/oauth2/token";
-            max_response_bytes = null; 
+            max_response_bytes = ?MAX_RESP_BYTES; 
             headers = request_headers;
             body = ?request_body_as_nat8; 
             method = #post;
@@ -160,7 +167,7 @@ actor {
         };
 
 
-        Cycles.add(15_431_484_615);   
+        Cycles.add(200_444_800_000);   
         let http_response : Types.HttpsTypes.HttpResponsePayload = await ic.http_request(http_request);
         
 
@@ -197,10 +204,10 @@ actor {
         let request_body_as_Blob: Blob = Text.encodeUtf8(data); 
         let request_body_as_nat8: [Nat8] = Blob.toArray(request_body_as_Blob);
 
-
+        
         let http_request : Types.HttpsTypes.HttpRequestArgs = {
             url = ep_url # "/v2/checkout/orders";
-            max_response_bytes = null; 
+            max_response_bytes = ?MAX_RESP_BYTES;
             headers = request_headers;
             body = ?request_body_as_nat8; 
             method = #post;
@@ -208,7 +215,7 @@ actor {
         };
 
 
-        Cycles.add(15_431_484_615);   
+        Cycles.add(200_444_800_000);   
         let http_response : Types.HttpsTypes.HttpResponsePayload = await ic.http_request(http_request);
         
 
@@ -240,7 +247,7 @@ actor {
 
         let http_request : Types.HttpsTypes.HttpRequestArgs = {
             url = ep_url # "/v2/checkout/orders/" # orderId # "/CAPTURE";
-            max_response_bytes = null; 
+            max_response_bytes = ?MAX_RESP_BYTES;
             headers = request_headers;
             body= ?request_body_as_nat8;
             method = #post;
@@ -248,7 +255,7 @@ actor {
         };
 
 
-        Cycles.add(15_431_484_615);   
+        Cycles.add(200_444_800_000);   
         let http_response : Types.HttpsTypes.HttpResponsePayload = await ic.http_request(http_request);
         
 

@@ -20,12 +20,12 @@ function initCanisterEnv() {
       "canister_ids.json"
     ));
   } catch (error) {
-    console.log("No local canister_ids.json found. Continuing production");
+     ("No local canister_ids.json found. Continuing production");
   }
   try {
     prodCanisters = require(path.resolve("canister_ids.json"));
   } catch (error) {
-    console.log("No production canister_ids.json found. Continuing with local");
+     ("No production canister_ids.json found. Continuing with local");
   }
 
   const canisterConfig = network === "local" ? localCanisters : prodCanisters;
